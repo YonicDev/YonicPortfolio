@@ -33,11 +33,11 @@ myou.load_scene('Scene').then (scene) ->
                 y = (e.clientY-camera.rotation_origin.y)/canvas.clientHeight*2
             else if e.type == 'touchmove'
                 e.preventDefault()
-                x = (e.touches[0].clientX-camera.rotation_origin.x)/canvas.clientWidth*2-1
-                y = (e.touches[0].clientY-camera.rotation_origin.y)/canvas.clientHeight*2-1
+                x = (e.touches[0].clientX-camera.rotation_origin.x)/canvas.clientWidth*2
+                y = (e.touches[0].clientY-camera.rotation_origin.y)/canvas.clientHeight*2
             console.log(e.clientX-camera.rotation_origin.x)
-            camera.camera_parent.rotation.z = camera.initial_rotation.z + x
-            camera.camera_parent.rotation.y = camera.initial_rotation.y + y
+            camera.camera_parent.rotation.z = camera.initial_rotation.z - x
+            camera.camera_parent.rotation.y = camera.initial_rotation.y - y
             if camera.camera_parent.rotation.y >= camera.angle_limit*Math.PI/180
                 camera.camera_parent.rotation.y = camera.angle_limit*Math.PI/180
             else if camera.camera_parent.rotation.y <= -camera.angle_limit*Math.PI/180
