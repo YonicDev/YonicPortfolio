@@ -86,3 +86,10 @@ typings/
 
 # DynamoDB Local files
 .dynamodb/
+
+# Myou build data
+build/
+data/
+
+# Instances made by Blender
+*.blend[0-9]*
