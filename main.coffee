@@ -25,18 +25,19 @@ myou.load_scene('Scene').then (scene) ->
     scene.enable 'render', 'physics'
     # If we ran this line before things have loaded, things would pop out
     # and fall unpredictably.
-    camera = new Camera {camera_object:scene.active_camera,control:new Control myou}
+    camera = new Camera {camera_object:scene.active_camera,control:new Control myou,mouse_rotation_multiplier:2}
     rotateCamera = (e) ->
             x;y;
             if e.type == 'mousemove'
-                e.preventDefault()
-                x = e.clientX/canvas.clientWidth*2-1
-                y = e.clientY/canvas.clientHeight*2-1
+                x = (e.clientX-camera.rotation_origin.x)/canvas.clientWidth*2
+                y = (e.clientY-camera.rotation_origin.y)/canvas.clientHeight*2
             else if e.type == 'touchmove'
-                x = e.touches[0].clientX/canvas.clientWidth*2-1
-                y = e.touches[0].clientY/canvas.clientHeight*2-1
-            camera.camera_parent.rotation.z += x/10
-            camera.camera_parent.rotation.y += y/10
+                e.preventDefault()
+                x = (e.touches[0].clientX-camera.rotation_origin.x)/canvas.clientWidth*2-1
+                y = (e.touches[0].clientY-camera.rotation_origin.y)/canvas.clientHeight*2-1
+            console.log(e.clientX-camera.rotation_origin.x)
+            camera.camera_parent.rotation.z = camera.initial_rotation.z + x
+            camera.camera_parent.rotation.y = camera.initial_rotation.y + y
             if camera.camera_parent.rotation.y >= camera.angle_limit*Math.PI/180
                 camera.camera_parent.rotation.y = camera.angle_limit*Math.PI/180
             else if camera.camera_parent.rotation.y <= -camera.angle_limit*Math.PI/180
@@ -45,12 +46,15 @@ myou.load_scene('Scene').then (scene) ->
     enableCameraMove = (e) ->
         console.log e.type
         if e.type == 'mousedown'
+            camera.rotation_origin = {x:e.clientX,y:e.clientY}
             canvas.addEventListener 'mousemove',rotateCamera
         else if e.type == 'touchstart'
+            camera.rotation_origin = {x:e.touches[0].clientX,y:e.touches[0].clientY}
             e.preventDefault()
             canvas.addEventListener 'touchmove', rotateCamera
     disableCameraMove = (e) ->
         console.log e.type
+        Object.assign(camera.initial_rotation,camera.camera_parent.rotation)
         if e.type == 'mouseup' || e.type == 'mouseout'
             canvas.removeEventListener 'mousemove',rotateCamera
         else if e.type == 'touchend' || e.type == 'touchleave'

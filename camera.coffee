@@ -2,8 +2,11 @@
 
 class Camera
     constructor: (options) ->
-        {@camera_object,@control,@angle_limit=60} = options
+        {@camera_object,@control,@mouse_rotation_multiplier=1.5,@angle_limit=60} = options
         @camera_parent = @camera_object.parent
+        @initial_rotation = {}
+        @rotation_origin = {x:0,y:0}
+        Object.assign(@initial_rotation,@camera_parent.rotation)
         callbacks = @camera_object.scene.post_animation_callbacks or @camera_object.scene.pre_draw_callbacks
         console.log @camera_object
         # WARNING: This must be the last tick,
