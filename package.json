@@ -4,7 +4,8 @@
   "description": "Portfolio for Mario Martínez Palacio",
   "main": "index.html",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npx myou-tool server -p 8080 webpack --watch"
   },
   "repository": {
     "type": "git",
