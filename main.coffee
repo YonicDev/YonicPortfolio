@@ -27,7 +27,7 @@ myou.load_scene('Scene').then (scene) ->
     # If we ran this line before things have loaded, things would pop out
     # and fall unpredictably.
     camera = new Camera {camera_object:scene.active_camera,control:new Control myou,mouse_rotation_multiplier:2}
-    planet = new Planet scene.objects["Icosphere"]
+    planet = new Planet scene
     #Debug
     window.scene = scene
     window.camera = camera
