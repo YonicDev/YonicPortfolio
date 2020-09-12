@@ -9,7 +9,7 @@ myou = new MyouEngine.Myou canvas, options
 
 Camera = require './camera'
 Control = require './control'
-
+Planet = require './planet'
 
 handleCameraMove = (camera,e) ->
     rotateCamera camera,e
@@ -23,9 +23,15 @@ myou.load_scene('Scene').then (scene) ->
     # At this point we can enable rendering and physics at the same time.
     # Otherwise we would have a black screen.
     scene.enable 'render', 'physics'
+
     # If we ran this line before things have loaded, things would pop out
     # and fall unpredictably.
     camera = new Camera {camera_object:scene.active_camera,control:new Control myou,mouse_rotation_multiplier:2}
+    planet = new Planet scene.objects["Icosphere"]
+    #Debug
+    window.scene = scene
+    window.camera = camera
+    window.planet = planet
     rotateCamera = (e) ->
             x;y;
             if e.type == 'mousemove'
@@ -35,7 +41,6 @@ myou.load_scene('Scene').then (scene) ->
                 e.preventDefault()
                 x = (e.touches[0].clientX-camera.rotation_origin.x)/canvas.clientWidth*2
                 y = (e.touches[0].clientY-camera.rotation_origin.y)/canvas.clientHeight*2
-            console.log(e.clientX-camera.rotation_origin.x)
             camera.camera_parent.rotation.z = camera.initial_rotation.z - x
             camera.camera_parent.rotation.y = camera.initial_rotation.y - y
             if camera.camera_parent.rotation.y >= camera.angle_limit*Math.PI/180

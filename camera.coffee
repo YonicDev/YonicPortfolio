@@ -8,7 +8,6 @@ class Camera
         @rotation_origin = {x:0,y:0}
         Object.assign(@initial_rotation,@camera_parent.rotation)
         callbacks = @camera_object.scene.post_animation_callbacks or @camera_object.scene.pre_draw_callbacks
-        console.log @camera_object
         # WARNING: This must be the last tick,
         # so make sure others are added before or with unshift
         # NOTE: This is pending an API change in the engine
