@@ -98,7 +98,7 @@ initialize_GUI = (scene,planet) ->
 
     gui.elements.push new Label gui,{
         name:"label",
-        stroke:{color:'red',width:'2'}
+        stroke:{width:'2'}
         ,planet
     }
     scene.post_draw_callbacks.push gui.update

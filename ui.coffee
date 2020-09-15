@@ -1,9 +1,13 @@
 MyouEngine = require 'myou-engine'
 {vec3} = require 'vmath'
 
+Works = require './works.json'
+
+SVG_NS = 'http://www.w3.org/2000/svg'
+
 class SvgGUI
     constructor: (canvas3d,options={}) ->
-        @svg = document.createElementNS 'http://www.w3.org/2000/svg','svg'
+        @svg = document.createElementNS SVG_NS,'svg'
         @svg.id = "svg_gui"
         @width = canvas3d.clientWidth
         @height = canvas3d.clientHeight
@@ -29,36 +33,61 @@ class SvgGUI
             if element.update? then element.update fd
 
 class SvgLabel
-    constructor: (@gui,options={
-            stroke:{color:'red',width:2}
-        }) ->
-        @line = document.createElementNS 'http://www.w3.org/2000/svg','line'
-        @line.id = options.name if options.name?
+    constructor: (@gui,options={}) ->
+        @g = document.createElementNS SVG_NS,'g'
+        @g.id = options.name if options.name?
+
+        @line = document.createElementNS SVG_NS,'path'
         @start = {x:0, y:0}
         @end = {x:@gui.width*0.75,y:@gui.height*0.75}
-        {@stroke,@planet} = options
-        @gui.svg.append @line
-        @speed = 2
+        {@stroke={color:'red',width:2},@tail_length=40,@planet} = options
+
+        @text = document.createElementNS SVG_NS,'text'
+        text_node = document.createTextNode("")
+        @text.appendChild text_node
+        @title = ""
+
+        {@text_margin = {x:20,0,y:0},@font_size=24} = options
+
+        @g.append @line
+        @g.append @text
+        @gui.svg.append @g
         @draw()
 
     draw: () =>
         @line.setAttribute 'stroke',@stroke.color
         @line.setAttribute 'stroke-width',@stroke.width
-        @line.setAttribute 'x1',@start.x
-        @line.setAttribute 'y1',@start.y
-        @line.setAttribute 'x2',@end.x
-        @line.setAttribute 'y2',@end.y
+        @line.setAttribute 'fill','none'
+        @line.setAttribute 'd',"M#{@start.x} #{@start.y} L#{@end.x} #{@end.y} L#{@end.x+@tail_length} #{@end.y}"
+
+        @text.setAttribute 'x',@end.x+@tail_length+@text_margin.x
+        @text.setAttribute 'y',@end.y+@text_margin.y+@text.getAttribute('font-size')/3
+        @text.setAttribute 'fill',@stroke.color
+        @text.setAttribute 'font-size',@font_size
+        @text.childNodes[0].textContent = @title
 
     update: (fd) =>
         camera = @planet.triangles[0].scene.active_camera
         space_point = @planet.get_triangle_center @planet.triangles.indexOf @planet.selected_triangle
         screen_point = vec3.create()
         vec3.transformMat4 screen_point,space_point,camera.world_to_screen_matrix
+        canvas3d = @planet.triangles[0].scene.context.canvas
         @start = {
-            x: (1+screen_point.x) * @gui.width*0.5,
-            y: (1-screen_point.y) * @gui.height*0.5
+            x: (1+screen_point.x) * canvas3d.clientWidth*0.5,
+            y: (1-screen_point.y) * canvas3d.clientHeight*0.5
         }
         @end = {x:@gui.width*0.75,y:@gui.height*0.75}
+
+        {gl} = @planet.triangles[0].scene.context.render_manager
+        p = new Uint8Array(4)
+        gl.readPixels @start.x,@start.y,1,1,gl.RGBA,gl.UNSIGNED_BYTE,p
+        @stroke.color = "rgba(#{p[0]+32},#{p[1]+32},#{p[2]+32},1)"
+
+        window.Works = Works
+
+        selected_work = Works.find (work) => work.triangle == @planet.triangles.indexOf @planet.selected_triangle
+        @title = if selected_work? then selected_work.title else "Coming soon..."
+
         @draw()
 
 ###

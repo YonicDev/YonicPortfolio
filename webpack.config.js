@@ -35,7 +35,7 @@ var config = {
             {test: /\.woff2?$/, loader: 'url-loader?mimetype=application/font-woff'},
             {test: /\.eot$/, loader: 'url-loader?mimetype=application/font-woff'},
             {test: /\.ttf$/, loader: 'url-loader?mimetype=application/font-woff'},
-            {test: /\.json$/, loader: 'json-loader'},
+            //{test: /\.json$/, loader: 'json-loader'},
             {test: /\.html$/, loader: 'raw-loader'},
         ]
     },
