@@ -6,6 +6,7 @@ options =
     data_dir: 'data',
     debug: true
 myou = new MyouEngine.Myou canvas, options
+window.myou = myou
 
 Camera = require './camera'
 Control = require './control'
@@ -13,6 +14,16 @@ Planet = require './planet'
 
 handleCameraMove = (camera,e) ->
     rotateCamera camera,e
+
+# GUI Canvas initialization
+#{GUI} = require './ui'
+#gui = new GUI canvas
+
+# GUI Svg initialization
+document.body.style.overflow = 'hidden'
+{SvgGUI} = require './ui'
+gui = new SvgGUI canvas
+
 # Load the scene called "Scene", its objects and enable it
 myou.load_scene('Scene').then (scene) ->
     # At this point, the scene has loaded but not the meshes, textures, etc.
@@ -26,7 +37,7 @@ myou.load_scene('Scene').then (scene) ->
 
     # If we ran this line before things have loaded, things would pop out
     # and fall unpredictably.
-    camera = new Camera {camera_object:scene.active_camera,control:new Control myou,mouse_rotation_multiplier:2}
+    camera = new Camera {camera_object:scene.active_camera,control:new Control myou,mouse_rotation_multiplier:2,angle_limit:360}
     planet = new Planet scene
     #Debug
     window.scene = scene
@@ -34,6 +45,7 @@ myou.load_scene('Scene').then (scene) ->
     window.planet = planet
     rotateCamera = (e) ->
             x;y;
+            e.stopPropagation()
             if e.type == 'mousemove'
                 x = (e.clientX-camera.rotation_origin.x)/canvas.clientWidth*2
                 y = (e.clientY-camera.rotation_origin.y)/canvas.clientHeight*2
@@ -74,6 +86,36 @@ myou.load_scene('Scene').then (scene) ->
     canvas.addEventListener 'touchend', disableCameraMove
     canvas.addEventListener 'touchleave', disableCameraMove
 
+    document.addEventListener 'triangleChanged', (e) =>
+        console.log "Blip!"
+
+    #initialize_GUI scene,planet
+    # Initialize GUI
+    initialize_GUI(scene,planet)
+
+initialize_GUI = (scene,planet) ->
+    Label = require('./ui').SvgLabel
+
+    gui.elements.push new Label gui,{
+        name:"label",
+        stroke:{color:'red',width:'2'}
+        ,planet
+    }
+    scene.post_draw_callbacks.push gui.update
+###
+initialize_GUI = (scene,planet) ->
+
+    {Label} = require './ui'
+
+    gui.ctx = gui.canvas.getContext '2d'
+    gui.elements.label = new Label planet,{gui}
+    console.log gui.elements
+
+    scene.post_draw_callbacks.push (scene,fd) =>
+        if gui.redraw then gui.clear_canvas()
+        for name,element of gui.elements
+            element.update fd
+###
 # Convenience variables for console access
 # They have $ in the name to avoid using them by mistake elsewhere
 window.$myou = myou
