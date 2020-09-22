@@ -28,6 +28,7 @@ handleCameraMove = (camera,e) ->
 document.body.style.overflow = 'hidden'
 {SvgGUI} = require './ui'
 gui = new SvgGUI canvas
+window.gui = gui
 
 # Load the scene called "Scene", its objects and enable it
 myou.load_scene('Scene').then (scene) ->
@@ -97,11 +98,20 @@ myou.load_scene('Scene').then (scene) ->
 
 initialize_GUI = (scene,planet) ->
     Label = require('./ui').SvgLabel
+    {CategoryWindow} = require './ui'
 
     gui.elements.push new Label gui,{
         name:"label",
         stroke:{width:'2'}
         ,planet
+    }
+    gui.elements.push new CategoryWindow gui,{
+        name:"category-window"
+        width:320,
+        height:180,
+        radius:15,
+        stroke:{color:"cyan",width:4},
+        planet
     }
     scene.post_draw_callbacks.push gui.update
 ###

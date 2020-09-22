@@ -1,8 +1,15 @@
 [
     {
-        "triangle": 12,
+        "triangle": 13,
         "title": "Prime VR",
-        "image": "",
+        "image": "/assets/gui/prime-vr.png",
+        "description":"",
+        "media": []
+    },
+    {
+        "triangle": 12,
+        "title": "About me",
+        "image": "/assets/gui/logo-bg.png",
         "description":"",
         "media": []
     }

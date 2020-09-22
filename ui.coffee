@@ -121,8 +121,69 @@ class SvgLabel
                 alpha[bet.indexOf(char)+offset]
         return arr.join("")
 
+class CategoryWindow
+    constructor: (@gui,options={}) ->
+        @x = @gui.width*0.75
+        @y = @gui.height*0.4
+
+        @maxWidth = options.width
+        @maxHeight = options.height
+
+        @g = document.createElementNS SVG_NS,'g'
+        @g.id = options.name if options.name?
+        {@width,@height,@radius,@stroke,@planet} = options
+
+        @path = document.createElementNS SVG_NS,'polygon'
+
+        @image = document.createElementNS(SVG_NS,'image')
+
+        @mask = {
+            element: document.createElementNS(SVG_NS,'clipPath'),
+            path: document.createElementNS(SVG_NS,'polygon'),
+        }
+        @mask.element.id = @g.id+"-mask"
+
+        @mask.element.append @mask.path
+        @g.append @mask.element
+        @g.append @image
+        @g.append @path
+        @gui.svg.append @g
+
         @draw()
 
+    update: (fd) =>
+        @x = @gui.width*0.75
+        @y = @gui.height*0.4
+        @width = @maxWidth
+        @height = @maxHeight
+
+        selected_work = Works.find (work) => work.triangle == @planet.triangles.indexOf @planet.selected_triangle
+        if selected_work? and selected_work.image != ""
+            @image_src = selected_work.image
+        else
+            @image_src = "/assets/gui/static.png"
+
+        @draw()
+
+    draw : =>
+        @path.setAttribute 'points',
+            "#{@x+@radius},#{@y}
+            #{@x+@width-@radius},#{@y}
+            #{@x+@width},#{@y+@radius}
+            #{@x+@width},#{@y+@height-@radius}
+            #{@x+@width-@radius},#{@y+@height}
+            #{@x+@radius},#{@y+@height}
+            #{@x},#{@y+@height-@radius}
+            #{@x},#{@y+@radius}"
+        @path.setAttribute 'stroke',@stroke.color
+        @path.setAttribute 'stroke-width',@stroke.width
+        @path.setAttribute 'fill','none'
+        @mask.path.setAttribute('points',@path.getAttribute('points'))
+        @image.setAttribute 'x',@x
+        @image.setAttribute 'y',@y
+        @image.setAttribute 'href',@image_src
+        @image.setAttribute 'width',@width
+        @image.setAttribute 'clip-path',"url(##{@mask.element.id})"
 ###
 class GUI
     constructor: (canvas3d,options={}) ->
@@ -164,4 +225,4 @@ class Label
 module.exports = {GUI,Label}
 ###
 
-module.exports = {SvgGUI,SvgLabel}
+module.exports = {SvgGUI,SvgLabel,CategoryWindow}
