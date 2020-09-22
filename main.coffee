@@ -4,7 +4,12 @@ MyouEngine = require 'myou-engine'
 canvas = MyouEngine.create_full_window_canvas()
 options =
     data_dir: 'data',
-    debug: true
+    debug: true,
+    gl_options: {
+        antialias: true,
+        alpha: true,
+        preserveDrawingBuffer: true
+    }
 myou = new MyouEngine.Myou canvas, options
 window.myou = myou
 
@@ -85,9 +90,6 @@ myou.load_scene('Scene').then (scene) ->
     canvas.addEventListener 'mouseup',disableCameraMove
     canvas.addEventListener 'touchend', disableCameraMove
     canvas.addEventListener 'touchleave', disableCameraMove
-
-    document.addEventListener 'triangleChanged', (e) =>
-        console.log "Blip!"
 
     #initialize_GUI scene,planet
     # Initialize GUI

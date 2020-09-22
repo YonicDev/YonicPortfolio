@@ -46,12 +46,17 @@ class SvgLabel
         text_node = document.createTextNode("")
         @text.appendChild text_node
         @title = ""
+        @update_label_text()
 
         {@text_margin = {x:20,0,y:0},@font_size=24} = options
 
         @g.append @line
         @g.append @text
         @gui.svg.append @g
+
+        document.addEventListener "triangleChanged",(e) =>
+            @update_label_text()
+
         @draw()
 
     draw: () =>
@@ -83,10 +88,38 @@ class SvgLabel
         gl.readPixels @start.x,@start.y,1,1,gl.RGBA,gl.UNSIGNED_BYTE,p
         @stroke.color = "rgba(#{p[0]+32},#{p[1]+32},#{p[2]+32},1)"
 
-        window.Works = Works
+        @draw()
 
+    update_label_text: () =>
         selected_work = Works.find (work) => work.triangle == @planet.triangles.indexOf @planet.selected_triangle
-        @title = if selected_work? then selected_work.title else "Coming soon..."
+        txt = if selected_work? then selected_work.title else "Coming soon..."
+        window.requestAnimationFrame @animate_text txt,0,20
+
+    animate_text: (txt,count,limit) =>
+        return () =>
+            if count++ > limit
+                @title = txt
+            else
+                @title = @shuffle_text txt,limit-count
+                window.requestAnimationFrame @animate_text txt,count,limit
+
+    shuffle_text: (source,amount) =>
+        alpha = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+        'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
+        bet = alpha.join("")
+        arr = for char in source
+            if !/[A-z '.]/.test char then continue
+            if /[ '.]/.test char then char
+            else
+                offset = amount
+                if bet.indexOf(char)+offset < 0
+                    while bet.indexOf(char)+offset < 0
+                        offset = (alpha.length) + (offset-1) - (bet.indexOf(char)-1)
+                else if bet.indexOf(char)+offset >= alpha.length
+                    while bet.indexOf(char)+offset >= alpha.length
+                        offset = (offset-1) - bet.indexOf char
+                alpha[bet.indexOf(char)+offset]
+        return arr.join("")
 
         @draw()
 
