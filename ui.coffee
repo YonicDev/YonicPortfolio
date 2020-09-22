@@ -135,7 +135,15 @@ class CategoryWindow
 
         @path = document.createElementNS SVG_NS,'polygon'
 
+        @overlay = document.createElementNS SVG_NS,'polygon'
+        @overlay.style.backgroundBlendMode = "linear-burn"
+        @overlay.setAttribute 'fill','rgba(0,255,255,0.15)'
+
         @image = document.createElementNS(SVG_NS,'image')
+        @image_src = "/assets/gui/static.gif"
+        img = new Image()
+        img.onload = @update_window
+        img.src = "/assets/gui/static.gif"
 
         @mask = {
             element: document.createElementNS(SVG_NS,'clipPath'),
@@ -147,21 +155,30 @@ class CategoryWindow
         @g.append @mask.element
         @g.append @image
         @g.append @path
+        @g.append @overlay
         @gui.svg.append @g
 
+        document.addEventListener "triangleChanged",(e) =>
+            @update_window()
+
         @draw()
+
+    update_window: (e) =>
+        selected_work = Works.find (work) => work.triangle == @planet.triangles.indexOf @planet.selected_triangle
+        @image_src = "/assets/gui/static.gif"
+        if selected_work? and selected_work.image != ""
+            preload_image = selected_work.image
+            img = new Image()
+            img.onload = (e) =>
+                @image_src = preload_image
+            img.src = preload_image
+
 
     update: (fd) =>
         @x = @gui.width*0.75
         @y = @gui.height*0.4
         @width = @maxWidth
         @height = @maxHeight
-
-        selected_work = Works.find (work) => work.triangle == @planet.triangles.indexOf @planet.selected_triangle
-        if selected_work? and selected_work.image != ""
-            @image_src = selected_work.image
-        else
-            @image_src = "/assets/gui/static.png"
 
         @draw()
 
@@ -179,6 +196,7 @@ class CategoryWindow
         @path.setAttribute 'stroke-width',@stroke.width
         @path.setAttribute 'fill','none'
         @mask.path.setAttribute('points',@path.getAttribute('points'))
+        @overlay.setAttribute 'points',@path.getAttribute 'points'
         @image.setAttribute 'x',@x
         @image.setAttribute 'y',@y
         @image.setAttribute 'href',@image_src
