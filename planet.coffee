@@ -1,21 +1,28 @@
 {vec3} = require 'vmath'
+{Behaviour} = require 'myou-engine'
 
 class Planet
     constructor: (scene) ->
         @triangles = for i in [1..20]
-            if i < 10 then scene.objects['Icosphere.00'+i] else scene.objects['Icosphere.0'+i]
+            if i < 10
+                new Triangle(scene.objects['Icosphere.00'+i],{index:i,planet:@})
+            else
+                new Triangle(scene.objects['Icosphere.0'+i],{index:i,planet:@})
         @selected_triangle = @get_closest_triangle()
+        @game_state = scene.global_vars.game_state
         scene.pre_draw_callbacks.unshift (scene, frame_duration)=>
             @tick frame_duration
 
     tick: (fd) =>
-        @prev_triangle = @selected_triangle
-        @selected_triangle = @get_closest_triangle()
-        if @prev_triangle != @selected_triangle
-            document.dispatchEvent new Event 'triangleChanged'
-        for triangle in @triangles
-            vec3.set triangle.ob.materials[0].inputs.selected.value,0,0,0
-        vec3.set @selected_triangle.ob.materials[0].inputs.selected.value,10,0,0
+        @game_state = @triangles[0].scene.global_vars.game_state
+        if @game_state == "orbit"
+            @prev_triangle = @selected_triangle
+            @selected_triangle = @get_closest_triangle()
+            if @prev_triangle != @selected_triangle
+                document.dispatchEvent new Event 'triangleChanged'
+            for triangle in @triangles
+                vec3.set triangle.ob.materials[0].inputs.selected.value,0,0,0
+            vec3.set @selected_triangle.ob.materials[0].inputs.selected.value,10,0,0
 
     get_vertex_coordinates: (triangle, vertex) =>
         index = vertex*triangle.ob.data.stride/4
@@ -34,4 +41,15 @@ class Planet
         distances = for face in [0..19]
             vec3.dist(camera.get_world_position(),@get_triangle_center(face))
         @triangles[distances.indexOf Math.min.apply null,distances]
+
+class Triangle extends Behaviour
+    constructor: (ob,options) ->
+        super ob.scene,options
+        @ob = ob
+        {@index,@planet} = options
+        @enable_object_picking()
+    on_object_pointer_down: (e) =>
+        if e.object != @ob then return
+        console.log @ob.name
+
 module.exports = Planet

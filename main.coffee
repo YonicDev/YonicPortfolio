@@ -41,6 +41,12 @@ myou.load_scene('Scene').then (scene) ->
     # Otherwise we would have a black screen.
     scene.enable 'render', 'physics'
 
+
+    # Set scene global vars
+    scene.global_vars = {
+        game_state: "orbit"
+    }
+
     # If we ran this line before things have loaded, things would pop out
     # and fall unpredictably.
     camera = new Camera {camera_object:scene.active_camera,control:new Control myou,mouse_rotation_multiplier:2,angle_limit:360}
@@ -92,9 +98,67 @@ myou.load_scene('Scene').then (scene) ->
     canvas.addEventListener 'touchend', disableCameraMove
     canvas.addEventListener 'touchleave', disableCameraMove
 
+    window.goToSection = (section) ->
+        canvas.removeEventListener 'mousedown',enableCameraMove
+        canvas.removeEventListener 'touchstart', enableCameraMove
+
+        target = planet.get_triangle_center section
+
+        scene.global_vars.game_state = "zooming"
+
+        tl = gsap.timeline {repeat:'0'}
+
+        tl.to camera.camera_object.position, {
+            duration:2,
+            x:target.x,
+            ease:"power2.inOut",
+            onComplete:displaySection,
+            onCompleteParams:[section],
+            callbackScope:scene
+        }
+        tl.to camera.camera_object.position, {
+            duration:2,
+            ease:"power2.inOut",
+            y:target.y,
+        }, 0
+        tl.to camera.camera_object.position, {
+            duration:2,
+            ease:"power2.inOut",
+            z:target.z,
+        }, 0
+        return
+
     #initialize_GUI scene,planet
     # Initialize GUI
     initialize_GUI(scene,planet)
+
+    window.returnToOrbit = ->
+        scene.global_vars.game_state = "zoomOut"
+
+        tl = gsap.timeline {repeat:'0'}
+
+        tl.to camera.camera_object.position, {
+            duration:2,
+            x:camera.initial_position.x,
+            ease:"power2.inOut",
+            onComplete:() ->
+                canvas.addEventListener 'mousedown',enableCameraMove
+                canvas.addEventListener 'touchstart', enableCameraMove
+
+                this.global_vars.game_state = "orbit"
+                return
+            callbackScope:scene
+        }
+        tl.to camera.camera_object.position, {
+            duration:2,
+            y:camera.initial_position.y,
+            ease:"power2.inOut",
+        }, 0
+        tl.to camera.camera_object.position, {
+            duration:2,
+            z:camera.initial_position.z,
+            ease:"power2.inOut",
+        }, 0
 
 initialize_GUI = (scene,planet) ->
     Label = require('./ui').SvgLabel
@@ -114,6 +178,10 @@ initialize_GUI = (scene,planet) ->
         planet
     }
     scene.post_draw_callbacks.push gui.update
+
+displaySection = (params) ->
+    this.global_vars.game_state = "section"
+    console.log params
 ###
 initialize_GUI = (scene,planet) ->
 
