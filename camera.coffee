@@ -9,6 +9,26 @@ class Camera
         @initial_position = vec3.clone @camera_object.position
         Object.assign(@initial_rotation,@camera_parent.rotation)
         callbacks = @camera_object.scene.post_animation_callbacks or @camera_object.scene.pre_draw_callbacks
+        
+        Object.defineProperty @camera_object, 'world_position_x',
+            get: -> @get_world_position().x,
+            set: (v) ->
+                p = @get_world_position()
+                p.x = v
+                @set_world_position p
+        Object.defineProperty @camera_object, 'world_position_y',
+            get: -> @get_world_position().y,
+            set: (v) ->
+                p = @get_world_position()
+                p.y = v
+                @set_world_position p
+        Object.defineProperty @camera_object, 'world_position_z',
+            get: -> @get_world_position().z,
+            set: (v) ->
+                p = @get_world_position()
+                p.z = v
+                @set_world_position p
+
         # WARNING: This must be the last tick,
         # so make sure others are added before or with unshift
         # NOTE: This is pending an API change in the engine

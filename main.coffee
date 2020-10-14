@@ -1,5 +1,7 @@
 MyouEngine = require 'myou-engine'
 
+{vec3} = require 'vmath'
+
 # Configure and create the engine instance
 canvas = MyouEngine.create_full_window_canvas()
 options =
@@ -102,33 +104,26 @@ myou.load_scene('Scene').then (scene) ->
         canvas.removeEventListener 'mousedown',enableCameraMove
         canvas.removeEventListener 'touchstart', enableCameraMove
 
-        target = planet.get_triangle_center section
+        target = planet.get_triangle_center section-1
 
         scene.global_vars.game_state = "zooming"
 
         tl = gsap.timeline {repeat:'0'}
 
-        tl.to camera.camera_object.position, {
+        tl.to camera.camera_object, {
             duration:2,
-            x:target.x,
+            world_position_x:target.x,
+            world_position_y:target.y,
+            world_position_z:target.z,
+            onUpdate: (params...) -> console.log params[0].get_world_position(),
+            onUpdateParams:[camera.camera_object]
             ease:"power2.inOut",
             onComplete:displaySection,
             onCompleteParams:[section],
             callbackScope:scene
         }
-        tl.to camera.camera_object.position, {
-            duration:2,
-            ease:"power2.inOut",
-            y:target.y,
-        }, 0
-        tl.to camera.camera_object.position, {
-            duration:2,
-            ease:"power2.inOut",
-            z:target.z,
-        }, 0
         return
 
-    #initialize_GUI scene,planet
     # Initialize GUI
     initialize_GUI(scene,planet)
 
