@@ -100,7 +100,12 @@ myou.load_scene('Scene').then (scene) ->
     canvas.addEventListener 'touchend', disableCameraMove
     canvas.addEventListener 'touchleave', disableCameraMove
 
+    # Go to a section of the webpage.
     window.goToSection = (section) ->
+
+        label = gui.find_element "label"
+        cat_window = gui.find_element "category-window"
+
         canvas.removeEventListener 'mousedown',enableCameraMove
         canvas.removeEventListener 'touchstart', enableCameraMove
 
@@ -110,50 +115,83 @@ myou.load_scene('Scene').then (scene) ->
 
         tl = gsap.timeline {repeat:'0'}
 
+        tl.set label.stroke,{
+            animation_direction:"forwards"
+        }
+        tl.to label.text,{
+            duration:0.5,
+            opacity:0,
+        }
+        tl.to cat_window,{
+            duration:4
+            x:cat_window.gui.width*0.25-cat_window.width*0.5,
+            y:cat_window.gui.height*0.5-cat_window.height*0.75,
+            maxWidth:600,
+            maxHeight:400,
+            ease:"power2.inOut",
+            onComplete:displaySection,
+            onCompleteParams:[section],
+            callbackScope:scene
+        },1
+        tl.to cat_window.image, {
+            duration:0.5
+            opacity:0
+        },1
         tl.to camera.camera_object, {
             duration:2,
             world_position_x:target.x,
             world_position_y:target.y,
             world_position_z:target.z,
-            onUpdate: (params...) -> console.log params[0].get_world_position(),
-            onUpdateParams:[camera.camera_object]
             ease:"power2.inOut",
-            onComplete:displaySection,
-            onCompleteParams:[section],
-            callbackScope:scene
-        }
+        },1
         return
 
     # Initialize GUI
     initialize_GUI(scene,planet)
 
+    # Return to the main menu of the webpage.
     window.returnToOrbit = ->
         scene.global_vars.game_state = "zoomOut"
+
+        label = gui.find_element "label"
+        cat_window = gui.find_element "category-window"
 
         tl = gsap.timeline {repeat:'0'}
 
         tl.to camera.camera_object.position, {
             duration:2,
             x:camera.initial_position.x,
+            y:camera.initial_position.y,
+            z:camera.initial_position.z,
+            ease:"power2.inOut",
+        }
+        tl.set label.stroke, {
+            animation_direction:"backwards"
+        }, 2
+        tl.to label.text, {
+            duration:0.5,
+            opacity:1,
+        },2
+        tl.to cat_window, {
+            duration:4,
+            x:cat_window.gui.width*0.75,
+            y:cat_window.gui.height*0.4,
+            maxWidth:320,
+            maxHeight:180,
             ease:"power2.inOut",
             onComplete:() ->
                 canvas.addEventListener 'mousedown',enableCameraMove
                 canvas.addEventListener 'touchstart', enableCameraMove
 
-                this.global_vars.game_state = "orbit"
+                @global_vars.game_state = "orbit"
                 return
             callbackScope:scene
-        }
-        tl.to camera.camera_object.position, {
-            duration:2,
-            y:camera.initial_position.y,
-            ease:"power2.inOut",
-        }, 0
-        tl.to camera.camera_object.position, {
-            duration:2,
-            z:camera.initial_position.z,
-            ease:"power2.inOut",
-        }, 0
+        },0
+        tl.to cat_window.image, {
+            duration:0.5
+            opacity:1
+        },">"
+        return
 
 initialize_GUI = (scene,planet) ->
     Label = require('./ui').SvgLabel
@@ -174,9 +212,8 @@ initialize_GUI = (scene,planet) ->
     }
     scene.post_draw_callbacks.push gui.update
 
-displaySection = (params) ->
+displaySection = (params...) ->
     this.global_vars.game_state = "section"
-    console.log params
 ###
 initialize_GUI = (scene,planet) ->
 

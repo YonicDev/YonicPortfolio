@@ -25,22 +25,34 @@ class SvgGUI
         #console.log "WIDTH: (svg) #{@width}, (canvas) #{canvas3d.clientWidth}\n
         #HEIGHT: (svg)#{@height}, (canvas) #{canvas3d.clientHeight}"
     update: (scene, fd) =>
+        @game_state = scene.global_vars.game_state
         canvas3d = scene.context.canvas
         @width = canvas3d.clientWidth
         @height = canvas3d.clientHeight
         @layout canvas3d
         for name,element of @elements
             if element.update? then element.update fd
+    find_element: (target,multiple=false) ->
+        matches = for element in @elements
+            if element.name == target then element else continue
+        if multiple then matches else matches[0]
 
 class SvgLabel
     constructor: (@gui,options={}) ->
         @g = document.createElementNS SVG_NS,'g'
         @g.id = options.name if options.name?
+        @name = options.name
 
         @line = document.createElementNS SVG_NS,'path'
         @start = {x:0, y:0}
         @end = {x:@gui.width*0.75,y:@gui.height*0.75}
         {@stroke={color:'red',width:2},@tail_length=40,@planet} = options
+        @stroke.length = @line.getTotalLength()
+        @stroke.target_length = 0
+        @stroke.animation_direction = "backwards"
+        # BUG: Dynamically updating the stroke-dasharray will cause the
+        # stroke-dashoffset to constantly trigger.
+        @line.style.transition = "stroke-dashoffset 1s linear"
 
         @text = document.createElementNS SVG_NS,'text'
         text_node = document.createTextNode("")
@@ -64,6 +76,8 @@ class SvgLabel
         @line.setAttribute 'stroke-width',@stroke.width
         @line.setAttribute 'fill','none'
         @line.setAttribute 'd',"M#{@start.x} #{@start.y} L#{@end.x} #{@end.y} L#{@end.x+@tail_length} #{@end.y}"
+        @line.setAttribute 'stroke-dasharray',@stroke.length
+        @line.setAttribute 'stroke-dashoffset',@stroke.target_length
 
         @text.setAttribute 'x',@end.x+@tail_length+@text_margin.x
         @text.setAttribute 'y',@end.y+@text_margin.y+@text.getAttribute('font-size')/3
@@ -83,10 +97,17 @@ class SvgLabel
         }
         @end = {x:@gui.width*0.75,y:@gui.height*0.75}
 
+        # Get pixel color from the selected triangle.
         {gl} = @planet.triangles[0].scene.context.render_manager
         p = new Uint8Array(4)
         gl.readPixels @start.x,@start.y,1,1,gl.RGBA,gl.UNSIGNED_BYTE,p
         @stroke.color = "rgba(#{p[0]+32},#{p[1]+32},#{p[2]+32},1)"
+
+        # Update stroke animation limits
+        @stroke.length = @line.getTotalLength()
+        switch @stroke.animation_direction
+            when "forwards" then @stroke.target_length = @stroke.length
+            when "backwards" then @stroke.target_length = 0
 
         @draw()
 
@@ -123,6 +144,8 @@ class SvgLabel
 
 class CategoryWindow
     constructor: (@gui,options={}) ->
+        @name = options.name
+
         @x = @gui.width*0.75
         @y = @gui.height*0.4
 
@@ -175,8 +198,15 @@ class CategoryWindow
 
 
     update: (fd) =>
-        @x = @gui.width*0.75
-        @y = @gui.height*0.4
+        switch @gui.game_state
+            when "orbit"
+                @x = @gui.width*0.75
+                @y = @gui.height*0.4
+            when "section"
+                @maxWidth = @gui.width/3
+                @maxHeight = @gui.height*0.5
+                @x = @gui.width*0.25-@width*0.5
+                @y = @gui.height*0.5-@height*0.75
         @width = @maxWidth
         @height = @maxHeight
 
