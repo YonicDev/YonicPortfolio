@@ -1,13 +1,13 @@
 [
     {
-        "triangle": 13,
+        "triangle": 14,
         "title": "Prime VR",
         "image": "/assets/gui/prime-vr.png",
         "description":"",
         "media": []
     },
     {
-        "triangle": 12,
+        "triangle": 13,
         "title": "About me",
         "image": "/assets/gui/logo-bg.png",
         "description":"",

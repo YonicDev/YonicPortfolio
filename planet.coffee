@@ -1,5 +1,6 @@
 {vec3} = require 'vmath'
 {Behaviour} = require 'myou-engine'
+work_data = require './works.json'
 
 class Planet
     constructor: (scene) ->
@@ -23,7 +24,7 @@ class Planet
             for triangle in @triangles
                 vec3.set triangle.ob.materials[0].inputs.selected.value,0,0,0
             vec3.set @selected_triangle.ob.materials[0].inputs.selected.value,10,0,0
-
+            return
     get_vertex_coordinates: (triangle, vertex) =>
         index = vertex*triangle.ob.data.stride/4
         return [triangle.ob.data.varray[index],triangle.ob.data.varray[index+1],triangle.ob.data.varray[index+2]]
@@ -48,6 +49,10 @@ class Triangle extends Behaviour
         @ob = ob
         {@index,@planet} = options
         @enable_object_picking()
+        for work in work_data
+            if work.triangle == @index
+                vec3.set @ob.materials[0].inputs.has_content.value,10,0,0
+                break
     on_object_pointer_down: (e) =>
         if e.object != @ob then return
         console.log @ob.name

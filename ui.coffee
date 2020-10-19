@@ -112,7 +112,7 @@ class SvgLabel
         @draw()
 
     update_label_text: () =>
-        selected_work = Works.find (work) => work.triangle == @planet.triangles.indexOf @planet.selected_triangle
+        selected_work = Works.find (work) => work.triangle == @planet.triangles.indexOf(@planet.selected_triangle)+1
         txt = if selected_work? then selected_work.title else "Coming soon..."
         window.requestAnimationFrame @animate_text txt,0,20
 
@@ -187,14 +187,19 @@ class CategoryWindow
         @draw()
 
     update_window: (e) =>
-        selected_work = Works.find (work) => work.triangle == @planet.triangles.indexOf @planet.selected_triangle
+        selected_work = Works.find (work) => work.triangle == @planet.triangles.indexOf(@planet.selected_triangle)+1
         @image_src = "/assets/gui/static.gif"
         if selected_work? and selected_work.image != ""
             preload_image = selected_work.image
+            @stroke.color = '#0FF'
+            @overlay.setAttribute 'fill','rgba(0,255,255,0.15)'
             img = new Image()
             img.onload = (e) =>
                 @image_src = preload_image
             img.src = preload_image
+        else
+            @stroke.color = '#CCC'
+            @overlay.setAttribute 'fill','rgba(128,128,128,0.15)'
 
 
     update: (fd) =>
