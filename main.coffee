@@ -51,7 +51,7 @@ myou.load_scene('Scene').then (scene) ->
 
     # If we ran this line before things have loaded, things would pop out
     # and fall unpredictably.
-    camera = new Camera {camera_object:scene.active_camera,control:new Control myou,mouse_rotation_multiplier:2,angle_limit:360}
+    camera = new Camera {camera_object:scene.active_camera,control:new Control(myou),mouse_rotation_multiplier:3,angle_limit:60}
     planet = new Planet scene
     #Debug
     window.scene = scene
@@ -67,8 +67,8 @@ myou.load_scene('Scene').then (scene) ->
                 e.preventDefault()
                 x = (e.touches[0].clientX-camera.rotation_origin.x)/canvas.clientWidth*2
                 y = (e.touches[0].clientY-camera.rotation_origin.y)/canvas.clientHeight*2
-            camera.camera_parent.rotation.z = camera.initial_rotation.z - x
-            camera.camera_parent.rotation.y = camera.initial_rotation.y - y
+            camera.camera_parent.rotation.z = camera.initial_rotation.z - x * camera.mouse_rotation_multiplier
+            camera.camera_parent.rotation.y = camera.initial_rotation.y - y * camera.mouse_rotation_multiplier
             if camera.camera_parent.rotation.y >= camera.angle_limit*Math.PI/180
                 camera.camera_parent.rotation.y = camera.angle_limit*Math.PI/180
             else if camera.camera_parent.rotation.y <= -camera.angle_limit*Math.PI/180
