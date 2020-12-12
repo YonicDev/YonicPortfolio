@@ -157,21 +157,34 @@ myou.load_scene('Scene').then (scene) ->
         cat_window = gui.find_element "category-window"
 
         tl = gsap.timeline {repeat:'0'}
+        slideshow_controls = gui.find_element "slideshow-controls"
 
+        tl.to slideshow_controls.buttons,{
+            duration:1,
+            offset: -slideshow_controls.buttonsHeight,
+            opacity:0,
+            ease:"power2.In",
+            stagger: {
+                each:0.1,
+                grid:[2,4],
+                from:"end",
+                axis:"x"
+            }
+        }
         tl.to camera.camera_object.position, {
             duration:2,
             x:camera.initial_position.x,
             y:camera.initial_position.y,
             z:camera.initial_position.z,
             ease:"power2.inOut",
-        }
+        },1
         tl.set label.stroke, {
             animation_direction:"backwards"
-        }, 2
+        }, 3
         tl.to label.text, {
             duration:0.5,
             opacity:1,
-        },2
+        },3
         tl.to cat_window, {
             duration:4,
             x:cat_window.gui.width*0.75,
@@ -186,7 +199,7 @@ myou.load_scene('Scene').then (scene) ->
                 @global_vars.game_state = "orbit"
                 return
             callbackScope:scene
-        },0
+        },1
         tl.to cat_window.image, {
             duration:0.5
             opacity:1
@@ -195,7 +208,7 @@ myou.load_scene('Scene').then (scene) ->
 
 initialize_GUI = (scene,planet) ->
     Label = require('./ui').SvgLabel
-    {CategoryWindow} = require './ui'
+    {CategoryWindow,SlideshowControls} = require './ui'
 
     gui.elements.push new Label gui,{
         name:"label",
@@ -210,10 +223,27 @@ initialize_GUI = (scene,planet) ->
         stroke:{color:"cyan",width:4},
         planet
     }
+    gui.elements.push new SlideshowControls gui
     scene.post_draw_callbacks.push gui.update
 
 displaySection = (params...) ->
     this.global_vars.game_state = "section"
+    tl = gsap.timeline {repeat:'0'}
+
+    slideshow_controls = gui.find_element "slideshow-controls"
+
+    tl.to slideshow_controls.buttons,{
+        duration:1,
+        offset: 0,
+        opacity:1,
+        ease:"power2.Out",
+        stagger: {
+            each:0.1,
+            grid:[2,4],
+            from:"start",
+            axis:"x"
+        }
+    }
 ###
 initialize_GUI = (scene,planet) ->
 

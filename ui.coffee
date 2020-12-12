@@ -237,6 +237,79 @@ class CategoryWindow
         @image.setAttribute 'href',@image_src
         @image.setAttribute 'width',@width
         @image.setAttribute 'clip-path',"url(##{@mask.element.id})"
+
+class SlideshowControls
+    constructor: (@gui,options={
+        name:"slideshow-controls"
+        buttonsWidth:160,
+        buttonsHeight:90,
+        buttonsPadding:5,
+        }) ->
+        @container = document.createElementNS SVG_NS, 'g'
+
+        {@name} = options
+        @container.id = @name
+
+        {@buttonsWidth,@buttonsHeight,@buttonsPadding} = options
+        @x = @gui.width/4
+        @y = @gui.height*0.75
+
+        @buttons = for i in [0..7]
+            new SlideshowButton @gui,{index:i,controls:@,radius:15}
+
+        @clientRect = @container.getClientRects()[0]
+
+        @gui.svg.append @container
+
+        @update()
+    update: () ->
+        @clientRect = @container.getClientRects()[0]
+        @x = @gui.width*0.25-@clientRect.width*0.5
+        @y = @gui.height*0.75-@clientRect.height*0.75
+        for button in @buttons
+            button.update()
+
+class SlideshowButton
+    constructor: (@gui,options={}) ->
+        {@index,@controls,@radius} = options
+
+        @path = document.createElementNS SVG_NS,'polygon'
+        @path.setAttribute "class","slideshowButton"
+
+        @row = if @index>3 then 1 else 0
+        @x = 0
+        @y = 0
+        @offset = -@controls.buttonsHeight
+
+        @width = @controls.buttonsWidth
+        @height = @controls.buttonsHeight
+
+        @stroke = {color:"red",width:3}
+        @opacity = 0
+
+        @controls.container.append @path
+
+        @update()
+
+    update: () ->
+        @x = @controls.x+(@controls.buttonsWidth+@controls.buttonsPadding)*(@index%4)
+        @y = @offset+@controls.y+(@controls.buttonsHeight+@controls.buttonsPadding)*@row
+        @draw()
+    draw: () ->
+        @path.setAttribute 'points',
+            "#{@x+@radius},#{@y}
+            #{@x+@width-@radius},#{@y}
+            #{@x+@width},#{@y+@radius}
+            #{@x+@width},#{@y+@height-@radius}
+            #{@x+@width-@radius},#{@y+@height}
+            #{@x+@radius},#{@y+@height}
+            #{@x},#{@y+@height-@radius}
+            #{@x},#{@y+@radius}"
+        @path.setAttribute 'stroke',@stroke.color
+        @path.setAttribute 'stroke-width',@stroke.width
+        @path.setAttribute 'stroke-opacity',@opacity
+        @path.setAttribute 'fill','none'
+        @path.setAttribute 'opacity',@opacity
 ###
 class GUI
     constructor: (canvas3d,options={}) ->
@@ -278,4 +351,4 @@ class Label
 module.exports = {GUI,Label}
 ###
 
-module.exports = {SvgGUI,SvgLabel,CategoryWindow}
+module.exports = {SvgGUI,SvgLabel,CategoryWindow,SlideshowControls}
