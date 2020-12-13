@@ -22,9 +22,21 @@ Planet = require './planet'
 handleCameraMove = (camera,e) ->
     rotateCamera camera,e
 
-# GUI Canvas initialization
-#{GUI} = require './ui'
-#gui = new GUI canvas
+# Background initialization
+{Background} = require './background'
+bg = new Background {
+        wave1Color:"rgba(5,252,186,0.0125)",
+        wave2Color:"rgba(5,252,186,0.05)",
+        triMesh: {
+            drawable:false,
+            active:false,
+            triSize:50,
+            colors:["lightseagreen","rgb(5,252,186)"],
+            alpha:0
+        }
+    }
+bg.init()
+window.bg = bg
 
 # GUI Svg initialization
 document.body.style.overflow = 'hidden'
@@ -113,6 +125,8 @@ myou.load_scene('Scene').then (scene) ->
 
         scene.global_vars.game_state = "zooming"
 
+        bg.showStars()
+
         tl = gsap.timeline {repeat:'0'}
 
         tl.set label.stroke,{
@@ -158,6 +172,8 @@ myou.load_scene('Scene').then (scene) ->
 
         tl = gsap.timeline {repeat:'0'}
         slideshow_controls = gui.find_element "slideshow-controls"
+
+        bg.showWaves()
 
         tl.to slideshow_controls.buttons,{
             duration:1,
@@ -225,6 +241,7 @@ initialize_GUI = (scene,planet) ->
     }
     gui.elements.push new SlideshowControls gui
     scene.post_draw_callbacks.push gui.update
+    scene.post_draw_callbacks.push bg.update
 
 displaySection = (params...) ->
     this.global_vars.game_state = "section"
