@@ -13,7 +13,7 @@ var config = {
     },
     context: __dirname,
     entry: [
-        __dirname + '/main.coffee',
+        __dirname + '/src/main.ts',
     ],
     stats: {
         colors: true,
@@ -37,6 +37,7 @@ var config = {
             {test: /\.ttf$/, loader: 'url-loader?mimetype=application/font-woff'},
             //{test: /\.json$/, loader: 'json-loader'},
             {test: /\.html$/, loader: 'raw-loader'},
+            {test: /\.tsx?$/, loader: 'ts-loader'}
         ]
     },
     plugins: [
@@ -56,7 +57,7 @@ var config = {
         }),
     ],
     resolve: {
-        extensions: ['.webpack.js', '.web.js', '.js', '.coffee', '.json'],
+        extensions: ['.webpack.js', '.web.js', '.js', '.coffee', '.json', '.ts'],
         alias: {
             // // You can use this to override some packages and use local versions
             // // Note that we're pointing to pack.coffee to use the source directly
@@ -72,7 +73,9 @@ module.exports = (env={}) => {
         config.mode = 'production';
     }
     if(env.sourcemaps){
-        config.devtool = 'cheap-module-eval-source-map';
+        console.log("Sourcemaps");
+        //config.devtool = 'cheap-module-eval-source-map';
+        config.devtool = 'eval-source-map';
     }
     if(env.minify || env.uglify){
         config.plugins.push(new webpack.optimize.UglifyJsPlugin({
