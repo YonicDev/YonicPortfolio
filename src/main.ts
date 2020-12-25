@@ -138,49 +138,58 @@ myou.load_scene('Scene').then(function (scene: any): Promise<any> {
         scene.global_vars.game_state = "zooming";
 
         bg.showStars();
-        const tl = gsap.timeline({repeat:0});
 
-        tl.set(label.stroke,{animation_direction:"forwards"});
-        tl.to(label.label.element,{duration:0.5,opacity:0});
-        tl.to(catWindow,{
+        gsap.set(label.stroke,{animation_direction:"forwards"});
+        gsap.to(label.label.element,{duration:0.5,opacity:0});
+
+        let toWidth = gui.width/3;
+        let toHeight = gui.height*0.5;
+
+        gsap.to(catWindow,{
             duration: 4,
-            ease: "power2.inOut",
             onComplete: displaySection,
             onCompleteParams: [scene,section],
-        },1)
-        tl.to(catWindow.dimensions, {
-            maxWidth: 600,
-            maxHeight: 400,
-            ease: "power2.inOut"
-        },1)
-        tl.to(catWindow.position,{
-            x: catWindow.gui.width*0.25-catWindow.dimensions.width*0.5,
-            y: catWindow.gui.height*0.5-catWindow.dimensions.height*0.75,
-            ease: "power2.inOut"
-        },1)
-        tl.to(catWindow.image,{
+            delay: 1
+        })
+        catWindow.rescaleTween = gsap.to(catWindow.dimensions, {
+            duration: 4,
+            maxWidth: toWidth,
+            maxHeight: toHeight,
+            ease: "power2.inOut",
+            delay: 1,
+            overwrite: true
+        });
+        catWindow.repositionTween = gsap.to(catWindow.position,{
+            duration: 4,
+            x: catWindow.gui.width*0.25-toWidth*0.5,
+            y: catWindow.gui.height*0.5-toHeight*0.75,
+            ease: "power2.inOut",
+            delay: 1,
+            overwrite: true
+        });
+        gsap.to(catWindow.image,{
             duration: 0.5,
-            opacity: 0
-        },1)
-        tl.to(camera.camera_object,{
+            opacity: 0,
+            delay: 1
+        })
+        gsap.to(camera.camera_object,{
             duration: 2,
             world_position_x: target.x,
             world_position_y: target.y,
             world_position_z: target.z,
-            ease:"power2.inOut"
-        },1);
+            ease:"power2.inOut",
+            delay: 1
+        });
     };
     (window as any).returnToOrbit = function () {
         scene.global_vars.game_state = "zoomOut";
 
         let label = gui.findElement("label") as SvgLabel;
         let catWindow = gui.findElement("category-window") as CategoryWindow;
-
-        const tl = gsap.timeline({repeat:0});
         let slideshowControls = gui.findElement("slideshow-controls") as SlideshowControls;
 
         bg.showWaves();
-        tl.to(slideshowControls.buttons,{
+        gsap.to(slideshowControls.buttons,{
             duration:1,
             offset: -slideshowControls.buttonsOptions.height,
             opacity: 0,
@@ -192,44 +201,55 @@ myou.load_scene('Scene').then(function (scene: any): Promise<any> {
                 axis:"x"
             }
         })
-        tl.to(camera.camera_object.position, {
+        gsap.to(camera.camera_object.position, {
             duration:2,
             x:camera.initial_position.x,
             y:camera.initial_position.y,
             z:camera.initial_position.z,
             ease:"power2.inOut",
-        },1)
-        tl.set(label.stroke, {
-            animation_direction:"backwards"
-        }, 3)
-        tl.to(label.label.element, {
+            delay: 1
+        })
+        gsap.set(label.stroke, {
+            animation_direction:"backwards",
+            delay: 3
+        })
+        gsap.to(label.label.element, {
             duration:0.5,
             opacity:1,
-        },3)
-        tl.to(catWindow.dimensions, {
-            duration:4,
-            maxWidth:320,
-            maxHeight:180,
-            ease:"power2.inOut",
-        },1)
-        tl.to(catWindow.position, {
-            duration:4,
-            x:catWindow.gui.width*0.75,
-            y:catWindow.gui.height*0.4,
-            ease:"power2.inOut",
-            onComplete:function(...args:gsap.CallbackVars[]) {
-                let scene: any = args[0];
-                canvas.addEventListener('mousedown',enableCameraMove)
+            delay: 3
+        })
+        gsap.to(catWindow,{
+            duration: 4,
+            delay: 1,
+            onComplete:function(...args:any[]) {
+                let scene = args[0];
+                canvas.addEventListener('mousedown', enableCameraMove)
                 canvas.addEventListener('touchstart', enableCameraMove)
 
                 scene.global_vars.game_state = "orbit";
             },
             onCompleteParams: [scene]
-        },1)
-        tl.to(catWindow.image, {
+        })
+        catWindow.rescaleTween = gsap.to(catWindow.dimensions, {
+            duration:4,
+            maxWidth:320,
+            maxHeight:180,
+            ease:"power2.inOut",
+            delay: 1,
+            overwrite: true
+        })
+        catWindow.repositionTween = gsap.to(catWindow.position, {
+            duration:4,
+            x:catWindow.gui.width*0.75,
+            y:catWindow.gui.height*0.4,
+            ease:"power2.inOut",
+            delay: 1
+        })
+        gsap.to(catWindow.image, {
             duration:0.5,
-            opacity:1
-        },">");
+            opacity:1,
+            delay: 5
+        });
     };
 });
 

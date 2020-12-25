@@ -2,6 +2,7 @@ import { MyouEngine } from "myou-engine";
 import { vec2, vec3 } from "vmath";
 import { GameState } from "./main";
 import Planet, { TriangleEntry } from "./planet";
+import gsap from "gsap";
 
 const Works = require('../works.json');
 
@@ -234,6 +235,9 @@ export class CategoryWindow implements SVGDrawableElement {
 
     public position: vec2;
 
+    public repositionTween: gsap.core.Tween|undefined;
+    public rescaleTween: gsap.core.Tween|undefined;
+
     public dimensions: {
         width: number,
         height: number,
@@ -255,6 +259,8 @@ export class CategoryWindow implements SVGDrawableElement {
         element: SVGClipPathElement,
         path: SVGPolygonElement
     }
+
+    private _lastCanvasDimensions: vec2;
 
     constructor(public gui:SvgGUI,options: {
         name: string,
@@ -307,7 +313,10 @@ export class CategoryWindow implements SVGDrawableElement {
         this.root.append(this.overlay);
         this.gui.svg.append(this.root);
 
-        document.addEventListener("triangleChanged",this.updateWindow)
+        this._lastCanvasDimensions = vec2.new(gui.width,gui.height);
+
+        document.addEventListener("triangleChanged",this.updateWindow);
+        gsap.ticker.add(this._updateWindowDimensions);
     }
 
     public updateWindow = (e: Event) => {
@@ -327,6 +336,64 @@ export class CategoryWindow implements SVGDrawableElement {
         } else if(selectedWork==null) {
             this.stroke.color = '#CCC'
             this.overlay.setAttribute('fill','rgba(128,128,128,0.15)');
+        }
+    }
+
+    private _updateWindowDimensions = () => {
+        if(this.repositionTween!=null && this.repositionTween.isActive()) {
+            console.log(this.repositionTween.time());
+        }
+        if(this._lastCanvasDimensions.x != this.gui.width || this._lastCanvasDimensions.y != this.gui.height) {
+            vec2.set(this._lastCanvasDimensions,this.gui.width,this.gui.height);
+            if(this.repositionTween!=null && this.repositionTween.isActive()) {
+                let to = {x: 0, y: 0, width: 0, height: 0};
+                let position = this.repositionTween.time();
+                if(this.gui.gameState == "zooming") {
+                    to.width = this.gui.width/3;
+                    to.height = this.gui.height*0.5;
+                    to.x = this._lastCanvasDimensions.x * 0.25 - to.width * 0.5;
+                    to.y = this._lastCanvasDimensions.y *0.5 - to.height * 0.75;
+                } else if (this.gui.gameState == "zoomOut") {
+                    to.width = this.gui.width/3;
+                    to.height = this.gui.height*0.5;
+                    to.x = this.gui.width*0.75;
+                    to.y = this.gui.height*0.4;
+                } else {
+                    return;
+                }
+                
+                this.repositionTween.vars.x = to.x;
+                this.repositionTween.vars.y = to.y;
+                this.repositionTween = gsap.to(this.position,{
+                    duration: 4,
+                    x: to.x,
+                    y: to.y,
+                    ease: "power2.inOut",
+                    overwrite: true
+                });
+                this.repositionTween.play(position)
+            }
+            if(this.rescaleTween!=null && this.rescaleTween.isActive()) {
+                let to = {width: 0, height: 0};
+                let position = this.rescaleTween.time();
+                if(this.gui.gameState == "zooming") {
+                    to.width = this.gui.width/3;
+                    to.height = this.gui.height*0.5;
+                } else if(this.gui.gameState == "zoomOut") {
+                    to.width = 320;
+                    to.height = 180;
+                } else {
+                    return;
+                }
+                this.rescaleTween = gsap.to(this.dimensions, {
+                    duration: 4,
+                    maxWidth: to.width,
+                    maxHeight: to.height,
+                    ease: "power2.inOut",
+                    overwrite: true
+                });
+                this.rescaleTween.play(position)
+            }
         }
     }
 
