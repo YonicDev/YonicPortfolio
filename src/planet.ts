@@ -11,10 +11,17 @@ export interface TriangleEntry {
     media: any[]
 }
 
+export type TrianglePoint = {
+    [key in PlanetCardinal]: number;
+};
+
+export type PlanetCardinal = "North"|"South"|"East"|"West";
+
 export default class Planet {
     public triangles: Triangle[];
     public selectedTriangle: Triangle;
     public gameState: GameState;
+    public readonly triangleMap: TrianglePoint[] = require('./triangle_map.json');
     
     private _prevTriangle: Triangle;
     constructor(public scene: any) {
@@ -36,6 +43,11 @@ export default class Planet {
             this.selectedTriangle = this.getClosestTriangle();
             if(this._prevTriangle != this.selectedTriangle)
                 document.dispatchEvent(new Event('triangleChanged'));
+            for(const triangle of this.triangles) {
+                vec3.set(triangle.ob.materials[0].inputs.selected.value,0,0,0);
+            }
+            vec3.set(this.selectedTriangle.ob.materials[0].inputs.selected.value,10,0,0);
+        } else if(this.gameState == "autoOrbit") {
             for(const triangle of this.triangles) {
                 vec3.set(triangle.ob.materials[0].inputs.selected.value,0,0,0);
             }

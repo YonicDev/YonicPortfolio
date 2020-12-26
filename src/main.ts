@@ -62,8 +62,8 @@ myou.load_scene('Scene').then(function (scene: any): Promise<any> {
     }
     // If we ran this line before things have loaded, things would pop out
     // and fall unpredictably.
-    const camera = new Camera(scene.active_camera,new Control(myou),3,60)
     const planet = new Planet(scene);
+    const camera = new Camera(scene.active_camera,myou,planet,3,60);
 
     // Debug
     (window as any).scene = scene;
@@ -71,6 +71,7 @@ myou.load_scene('Scene').then(function (scene: any): Promise<any> {
     (window as any).planet = planet;
 
     function rotateCamera(e:MouseEvent|TouchEvent) {
+        if(scene.global_vars.game_state == "orbit") {
             let v = vec2.create();
             e.stopPropagation();
             if( e.type == 'mousemove') {
@@ -92,6 +93,7 @@ myou.load_scene('Scene').then(function (scene: any): Promise<any> {
             else if(camera.camera_parent.rotation.y <= -camera.angle_limit*Math.PI/180)
                 camera.camera_parent.rotation.y = -camera.angle_limit*Math.PI/180;
             myou.main_loop.reset_timeout();
+        }
     };
 
     function enableCameraMove(e: Event) {
@@ -308,4 +310,4 @@ function displaySection(...params:gsap.CallbackVars[]) {
 (window as any).$MyouEngine = Myou;
 (window as any).$vmath = require('vmath');
 
-export type GameState = "orbit"|"section"|"zooming"|"zoomOut";
+export type GameState = "orbit"|"section"|"zooming"|"zoomOut"|"autoOrbit";

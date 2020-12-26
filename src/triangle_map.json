@@ -1,0 +1,122 @@
+[
+    {
+        "North": -1,
+        "West": 2,
+        "South": 6,
+        "East": 3
+    },
+    {
+        "North": -1,
+        "West": 5,
+        "South": 14,
+        "East": 1
+    },
+    {
+        "North": -1,
+        "West": 1,
+        "South": 8,
+        "East": 4
+    },
+    {
+        "North": -1,
+        "West": 3,
+        "South": 10,
+        "East": 5
+    },
+    {
+        "North": -1,
+        "West": 4,
+        "South": 12,
+        "East": 2
+    },
+    {
+        "North": 1,
+        "West": 15,
+        "South": 16,
+        "East": 7
+    },
+    {
+        "North": 3,
+        "West": 6,
+        "South": 20,
+        "East": 8
+    },
+    {
+        "North": 3,
+        "West": 7,
+        "South": 20,
+        "East": 9
+    },
+    {
+        "North": 4,
+        "West": 8,
+        "South": 19,
+        "East": 10
+    },
+    {
+        "North": 4,
+        "West": 9,
+        "South": 19,
+        "East": 11
+    },
+    {
+        "North": 5,
+        "West": 10,
+        "South": 18,
+        "East": 12
+    },
+    {
+        "North": 5,
+        "West": 11,
+        "South": 18,
+        "East": 13
+    },
+    {
+        "North": 2,
+        "West": 12,
+        "South": 17,
+        "East": 14
+    },
+    {
+        "North": 2,
+        "West": 13,
+        "South": 17,
+        "East": 15
+    },
+    {
+        "North": 1,
+        "West": 14,
+        "South": 16,
+        "East": 6
+    },
+    {
+        "North": 15,
+        "West": 17,
+        "South": -1,
+        "East": 20
+    },
+    {
+        "North": 13,
+        "West": 18,
+        "South": -1,
+        "East": 16
+    },
+    {
+        "North": 11,
+        "West": 19,
+        "South": -1,
+        "East": 17
+    },
+    {
+        "North": 9,
+        "West": 20,
+        "South": -1,
+        "East": 18
+    },
+    {
+        "North": 7,
+        "West": 16,
+        "South": -1,
+        "East": 19
+    }
+]
