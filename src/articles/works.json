@@ -4,13 +4,15 @@
         "title": "Prime VR",
         "image": "/assets/gui/prime-vr.png",
         "description":"",
-        "media": []
+        "media": [],
+        "article": "prime-vr.md"
     },
     {
         "triangle": 13,
         "title": "About me",
         "image": "/assets/gui/logo-bg.png",
         "description":"",
-        "media": []
+        "media": [],
+        "article": "about.md"
     }
 ]

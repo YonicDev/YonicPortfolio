@@ -1,13 +1,16 @@
 import { Myou, create_full_window_canvas } from "myou-engine"
 import gsap from "gsap"
+import DOMPurify from "dompurify";
 
 import { vec2 } from "vmath"
 
 import Camera from "./camera"
 import { Control } from "./control"
-import Planet from "./planet"
+import Planet, { TriangleEntry } from "./planet"
 import Background from "./background"
-import { CategoryWindow, SlideshowControls, SvgGUI, SvgLabel } from "./ui"
+import { ArticleWindow, CategoryWindow, SlideshowControls, SvgGUI, SvgLabel } from "./ui"
+
+const works:TriangleEntry[]  = require('./articles/works.json');
 
 const canvas: HTMLCanvasElement = create_full_window_canvas();
 
@@ -183,14 +186,25 @@ myou.load_scene('Scene').then(function (scene: any): Promise<any> {
             delay: 1
         });
     };
-    (window as any).returnToOrbit = function () {
+    gui.articleWindow.backButton.onclick = (window as any).returnToOrbit = function () {
         scene.global_vars.game_state = "zoomOut";
 
         let label = gui.findElement("label") as SvgLabel;
         let catWindow = gui.findElement("category-window") as CategoryWindow;
         let slideshowControls = gui.findElement("slideshow-controls") as SlideshowControls;
 
+        gui.articleWindow.backButton.disabled = true;
+
         bg.showWaves();
+        gsap.to([gui.articleWindow.htmlContainer.style,gui.articleWindow.backButton.style],{
+            duration: 1,
+            opacity: 0,
+            ease: "power2.out"
+        })
+        gsap.set(gui.articleWindow.container.style,{
+            display: 'none',
+            delay: 1
+        })
         gsap.to(slideshowControls.buttons,{
             duration:1,
             offset: -slideshowControls.buttonsOptions.height,
@@ -286,11 +300,19 @@ function displaySection(...params:gsap.CallbackVars[]) {
     const scene: any = params[0]
     const section: number = params[1] as number;
     scene.global_vars.game_state = "section";
-    const tl = gsap.timeline({repeat:0});
     
     const slideshowControls = gui.findElement('slideshow-controls') as SlideshowControls;
 
-    tl.to(slideshowControls.buttons,{
+    const work: TriangleEntry = works.filter((w: TriangleEntry) => {
+        return w.triangle == section;
+    })[0];
+
+    let md: string = require(`./articles/${work.article}`);
+    md = DOMPurify.sanitize(md, {USE_PROFILES:{html: true}});
+    
+    gui.articleWindow.htmlContainer.innerHTML = md;
+
+    gsap.to(slideshowControls.buttons,{
         duration: 1,
         offset: 0,
         opacity: 1,
@@ -300,7 +322,16 @@ function displaySection(...params:gsap.CallbackVars[]) {
             grid: [2,4],
             from: "start",
             axis: "x"
+        },
+        onComplete: () => {
+            gui.articleWindow.backButton.disabled = false;
         }
+    });
+    gsap.set(gui.articleWindow.container.style,{display: 'block'})
+    gsap.to([gui.articleWindow.htmlContainer.style,gui.articleWindow.backButton.style],{
+        duration: 1,
+        opacity: 1,
+        ease: "power2.out"
     })
 }
 

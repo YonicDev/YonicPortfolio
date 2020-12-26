@@ -37,7 +37,21 @@ var config = {
             {test: /\.ttf$/, loader: 'url-loader?mimetype=application/font-woff'},
             //{test: /\.json$/, loader: 'json-loader'},
             {test: /\.html$/, loader: 'raw-loader'},
-            {test: /\.tsx?$/, loader: 'ts-loader'}
+            {test: /\.tsx?$/, loader: 'ts-loader'},
+            {
+                test: /\.md$/,
+                use: [
+                    {
+                        loader: 'html-loader'
+                    },
+                    {
+                        loader: 'markdown-loader',
+                        options: {
+                            pedantic: false
+                        }
+                    }
+                ]
+            }
         ]
     },
     plugins: [

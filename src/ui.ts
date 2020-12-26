@@ -4,7 +4,7 @@ import { GameState } from "./main";
 import Planet, { TriangleEntry } from "./planet";
 import gsap from "gsap";
 
-const Works = require('../works.json');
+const Works = require('./articles/works.json');
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -23,6 +23,7 @@ export class SvgGUI {
     public height: number;
     public gameState: GameState|undefined = undefined;
     public elements: SVGDrawableElement[];
+    public articleWindow: ArticleWindow;
     constructor(canvas3d:HTMLCanvasElement,options:any) {
         this.svg = document.createElementNS(SVG_NS,'svg');
         this.svg.id = "svg_gui";
@@ -35,6 +36,7 @@ export class SvgGUI {
         this.svg.style.zIndex = '1';
         this.svg.style.pointerEvents = 'none';
         this.elements = [];
+        this.articleWindow = new ArticleWindow(this);
         document.body.append(this.svg);
     }
     public layout = (canvas3d:HTMLCanvasElement): void => {
@@ -340,9 +342,6 @@ export class CategoryWindow implements SVGDrawableElement {
     }
 
     private _updateWindowDimensions = () => {
-        if(this.repositionTween!=null && this.repositionTween.isActive()) {
-            console.log(this.repositionTween.time());
-        }
         if(this._lastCanvasDimensions.x != this.gui.width || this._lastCanvasDimensions.y != this.gui.height) {
             vec2.set(this._lastCanvasDimensions,this.gui.width,this.gui.height);
             if(this.repositionTween!=null && this.repositionTween.isActive()) {
@@ -566,5 +565,45 @@ export class SlideshowButton implements SVGDrawableElement {
         this.path.setAttribute('stroke-opacity',this.opacity.toString());
         this.path.setAttribute('fill','none');
         this.path.setAttribute('opacity',this.opacity.toString());
+    }
+}
+
+export class ArticleWindow {
+    public container: HTMLDivElement;
+    public htmlContainer: HTMLDivElement;
+    public backButton: HTMLButtonElement;
+
+    constructor(public gui: SvgGUI) {
+        this.container = document.createElement("div");
+        this.container.id = "article-window";
+        this.container.style.position = "absolute";
+        this.container.style.top = "10vh";
+        this.container.style.left = "50vw";
+        this.container.style.width = "calc(50vw - 64px)"
+        this.container.style.height = "60vh";
+        this.container.style.display = "none";
+
+        this.htmlContainer = document.createElement("div");
+        this.htmlContainer.style.boxSizing = "border-box";
+        this.htmlContainer.style.padding = "0 1rem";
+        this.htmlContainer.style.border = "3px solid aqua";
+        this.htmlContainer.style.color = "aqua";
+        this.htmlContainer.style.background = "rgba(0, 37, 51, 0.333)";
+        (this.htmlContainer.style as any).backdropFilter = "blur(5px)";
+        this.htmlContainer.style.opacity = "0";
+        this.htmlContainer.style.width = "100%"
+        this.htmlContainer.style.height = "100%";
+        this.htmlContainer.style.overflow = "hidden scroll";
+
+        this.backButton = document.createElement("button");
+        this.backButton.innerHTML = "Go back";
+        this.backButton.style.fontSize = "18pt";
+        this.backButton.style.marginTop = "0.5rem";
+        this.backButton.style.padding = "0.25rem 1rem"
+        this.backButton.disabled = true;
+
+        this.container.appendChild(this.htmlContainer);
+        this.container.appendChild(this.backButton);
+        document.body.appendChild(this.container);
     }
 }
