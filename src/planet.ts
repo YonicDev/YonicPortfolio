@@ -100,6 +100,6 @@ export class Triangle extends Behaviour {
     }
     public on_object_pointer_down = (e:any): void => {
         if(e.object != this.ob) { return; }
-        console.log(this.ob.name);
+        document.dispatchEvent(new CustomEvent("TrianglePicked",{detail:this.index}))
     }
 }

@@ -56,6 +56,8 @@ export default class Camera {
         callbacks.push((scene: any,frame_duration: number) => {
             this.tick(frame_duration)
         });
+
+        document.addEventListener("TrianglePicked",this.orbitTo)
     }
     tick(fd: number): void {
         let state: GameState = this.camera_object.scene.global_vars.game_state;
@@ -69,38 +71,44 @@ export default class Camera {
             // quat.rotateY @camera_parent.rotation, @camera_parent.rotation,@control.axes.value.y/fd
         }
     }
-    public orbitTo = (e:CustomEventInit<PlanetCardinal>): void => {
-        if(typeof e.detail === "string") {
-            if(this.camera_object.scene.global_vars.game_state == "orbit") {
-                this.camera_object.scene.global_vars.game_state = "autoOrbit";
-                const targetIndex = this.planet.triangleMap[this.planet.triangles.indexOf(this.planet.selectedTriangle)][e.detail]-1;
-                const targetTriangle = this.planet.triangles[targetIndex];
-                const targetPoint = this.planet.getTriangleCenter(targetIndex);
-
-                let influence = {x: 0};
-                let initialRotation: quat = quat.create();
-                quat.copy(initialRotation,this.camera_parent.rotation);
-                
-                this.planet.selectedTriangle = targetTriangle;
-                document.dispatchEvent(new Event('triangleChanged'));
-
-                gsap.to(influence,{
-                    x: 1,
-                    duration:0.5,
-                    onUpdate: function(camera_parent: any, planet: Planet) {
-                        quat.copy(camera_parent.rotation,initialRotation);
-                        camera_parent.look_at(targetPoint,{front:"+X",influence:influence.x})
-                        camera_parent.set_rotation_order('XYZ'); // Myou converts it into quat, so we turn it back to how it was.
-                    },
-                    onUpdateParams: [this.camera_parent, this.planet],
-                    onComplete: function(camera_parent: any, camera: Camera) {
-                        camera_parent.scene.global_vars.game_state = "orbit";
-                        camera.initial_rotation = vec3.clone(camera_parent.rotation as vec3); 
-                    },
-                    ease:"circ.out",
-                    onCompleteParams: [this.camera_parent, this]
-                })
+    public orbitTo = (e:CustomEventInit<PlanetCardinal|number>): void => {
+        let targetIndex: number;
+        if(this.camera_object.scene.global_vars.game_state == "orbit") {
+            this.camera_object.scene.global_vars.game_state = "autoOrbit";
+            if(typeof e.detail === "string") {
+                targetIndex = this.planet.triangleMap[this.planet.triangles.indexOf(this.planet.selectedTriangle)][e.detail]-1;
+            } else if(typeof e.detail === "number") {
+                targetIndex = e.detail;
+            } else {
+                return;
             }
+            
+            const targetTriangle = this.planet.triangles[targetIndex];
+            const targetPoint = this.planet.getTriangleCenter(targetIndex);
+
+            let influence = {x: 0};
+            let initialRotation: quat = quat.create();
+            quat.copy(initialRotation,this.camera_parent.rotation);
+
+            this.planet.selectedTriangle = targetTriangle;
+            document.dispatchEvent(new Event('triangleChanged'));
+
+            gsap.to(influence,{
+                x: 1,
+                duration:0.5,
+                onUpdate: function(camera_parent: any, planet: Planet) {
+                    quat.copy(camera_parent.rotation,initialRotation);
+                    camera_parent.look_at(targetPoint,{front:"+X",influence:influence.x})
+                    camera_parent.set_rotation_order('XYZ'); // Myou converts it into quat, so we turn it back to how it was.
+                },
+                onUpdateParams: [this.camera_parent, this.planet],
+                onComplete: function(camera_parent: any, camera: Camera) {
+                    camera_parent.scene.global_vars.game_state = "orbit";
+                    camera.initial_rotation = vec3.clone(camera_parent.rotation as vec3); 
+                },
+                ease:"circ.out",
+                onCompleteParams: [this.camera_parent, this]
+            })
         }
     }
 }
