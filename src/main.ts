@@ -1,3 +1,5 @@
+import "./index.scss";
+
 import { Myou, create_full_window_canvas } from "myou-engine"
 import gsap from "gsap"
 import DOMPurify from "dompurify";
@@ -272,7 +274,6 @@ myou.load_scene('Scene').then(function (scene: any): Promise<any> {
 function initializeGUI(scene: any,planet: Planet) {
     gui.elements.push(new SvgLabel(gui,{
         name:"label",
-        stroke:{width:2,color:'cyan'},
         tailLength:40,
         textMargin:vec2.new(20,0),
         fontSize: 24,
@@ -282,7 +283,6 @@ function initializeGUI(scene: any,planet: Planet) {
         width:320,
         height:180,
         radius:15,
-        stroke:{color:"cyan",width:4},
         planet
     }),new SlideshowControls(gui,{
         name:"slideshow-controls",

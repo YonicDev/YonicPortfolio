@@ -1,0 +1,97 @@
+$WINDOW_BORDER_COLOR: cyan;
+$WINDOW_DISABLED_COLOR: gray;
+
+$LABEL_COLOR: cyan;
+
+body {
+    overflow: hidden;
+}
+
+#article-window {
+    position: absolute;
+    top: 10vh;
+    left: 50vw;
+    width: calc(50vw - 64px);
+    height: 60vh;
+    > #article-window-html-container {
+        background: rgba(0, 37, 51, 75%);
+        border: 3px solid $WINDOW_BORDER_COLOR;
+        color: $WINDOW_BORDER_COLOR;
+        width: 100%;
+        height: 100%;
+        overflow: hidden scroll;
+        box-sizing: border-box;
+        padding: 0 1rem;
+        scrollbar-color: $WINDOW_BORDER_COLOR transparent;
+        scrollbar-width: thin;
+    
+        *::selection {
+            background: transparent;
+            color: white;
+            text-shadow: 0 0 2px rgba(white,40%);
+        }
+    }
+    > button {
+        font-size: 18pt;
+        margin-top: 0.5rem;
+        padding: 0.25rem 1rem;
+    }
+}
+
+@supports(backdrop-filter: blur(1px)) {
+    #article-window > #article-window-html-container {
+        backdrop-filter: blur(5px);
+        background-color: rgba(0, 37, 51, 33%);
+    }
+}
+
+#svg_gui {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    pointer-events: none;
+
+    > #label {
+        > path {
+            stroke-width: 2px;
+            color: $LABEL_COLOR;
+            fill: none;
+        }
+        > text {
+            font-size: 24px;
+            font-family: sans-serif;
+        }
+    }
+
+    > #category-window {
+        > #category-window-overlay {
+            background-blend-mode: overlay;
+            fill:rgba($WINDOW_BORDER_COLOR,15%);
+        }
+        > #category-window-border {
+            stroke: $WINDOW_BORDER_COLOR;
+            stroke-width: 4;
+            fill: none;
+        }
+        > image {
+            clip-path: url(#category-window-mask);
+        }
+    }
+    > #category-window.disabled {
+        > #category-window-overlay {
+            fill:rgba($WINDOW_DISABLED_COLOR,15%);
+        }
+        > #category-window-border {
+            stroke: lighten($WINDOW_DISABLED_COLOR,50%);
+        }
+    }
+
+    > #slideshow-controls {
+        .slideshowButton {
+            stroke: $WINDOW_BORDER_COLOR;
+            stroke-width: 3;
+            fill: none;
+        }
+    }
+}

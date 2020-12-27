@@ -30,18 +30,14 @@ export class SvgGUI {
         this.width = canvas3d.clientWidth;
         this.height = canvas3d.clientHeight;
         this.layout(canvas3d);
-        this.svg.style.position = 'absolute';
-        this.svg.style.top = '0';
-        this.svg.style.left = '0';
-        this.svg.style.zIndex = '1';
         this.svg.style.pointerEvents = 'none';
         this.elements = [];
         this.articleWindow = new ArticleWindow(this);
         document.body.append(this.svg);
     }
     public layout = (canvas3d:HTMLCanvasElement): void => {
-        this.svg.setAttribute('width',this.width.toString());
-        this.svg.setAttribute('height',this.height.toString());
+        this.svg.setAttribute('width',canvas3d.width.toString());
+        this.svg.setAttribute('height',canvas3d.height.toString());
     }
     public update = (scene:any,fd:number) => {
         this.gameState = scene.global_vars.game_state;
@@ -69,14 +65,6 @@ export class SvgGUI {
     }
 }
 
-interface Stroke {
-    width: number,
-    color: string,
-    length?: number,
-    target_length?: number,
-    animation_direction?: "forwards"|"backwards"
-}
-
 export class SvgLabel implements SVGDrawableElement {
     public active = true;
     public drawable = true;
@@ -87,7 +75,12 @@ export class SvgLabel implements SVGDrawableElement {
     public line: SVGPathElement;
     public start: vec2;
     public end: vec2;
-    public stroke: Stroke;
+    public stroke: {
+        color?: string,
+        length?: number,
+        target_length?: number,
+        animation_direction?: "forwards"|"backwards"
+    };
     public tailLength: number;
 
     public planet: Planet;
@@ -101,7 +94,6 @@ export class SvgLabel implements SVGDrawableElement {
     
     constructor(public gui: SvgGUI, options:{
         name: string;
-        stroke: Stroke,
         tailLength: number,
         planet: Planet,
         textMargin: vec2,
@@ -110,12 +102,12 @@ export class SvgLabel implements SVGDrawableElement {
         this.planet = options.planet;
 
         this.root = document.createElementNS(SVG_NS,'g');
-        this.name = options.name;
+        this.name = this.root.id = options.name;
 
         this.line = document.createElementNS(SVG_NS,"path");
         this.start = vec2.create();
         this.end = vec2.new(this.gui.width*0.75,this.gui.height*0.75);
-        this.stroke = options.stroke;
+        this.stroke = {};
         this.tailLength = options.tailLength;
         
         this.stroke.length = this.line.getTotalLength();
@@ -171,17 +163,14 @@ export class SvgLabel implements SVGDrawableElement {
             length: this.stroke.length || 0,
             targetLength: this.stroke.target_length || 0
         }
-        this.line.setAttribute('stroke',this.stroke.color);
-        this.line.setAttribute('stroke-width',this.stroke.width.toString());
+        this.line.setAttribute('stroke',this.stroke.color as string);
         this.line.setAttribute('d',`M${this.start.x} ${this.start.y} L${this.end.x} ${this.end.y} L${this.end.x+this.tailLength} ${this.end.y}`);
-        this.line.setAttribute('fill','none');
         this.line.setAttribute('stroke-dasharray',stroke.length.toString());
         this.line.setAttribute('stroke-dashoffset',stroke.targetLength.toString());
 
         this.label.element.setAttribute('x',(this.end.x+this.tailLength+this.label.margin.x).toString());
         this.label.element.setAttribute('y',(this.end.y+this.label.margin.y+this.label.fontSize/3).toString());
-        this.label.element.setAttribute('fill',this.stroke.color);
-        this.label.element.setAttribute('font-size',this.label.fontSize.toString());
+        this.label.element.setAttribute('fill',this.stroke.color as string);
         this.label.element.childNodes[0].textContent = this.label.text;
     }
 
@@ -249,8 +238,6 @@ export class CategoryWindow implements SVGDrawableElement {
 
     public planet: Planet;
 
-    public stroke: Stroke;
-
     public root: SVGGElement;
     public overlay: SVGPolygonElement;
     public path: SVGPolygonElement;
@@ -268,7 +255,6 @@ export class CategoryWindow implements SVGDrawableElement {
         name: string,
         width: number,
         height: number,
-        stroke: Stroke,
         radius: number,
         planet: Planet
     }) {
@@ -287,14 +273,13 @@ export class CategoryWindow implements SVGDrawableElement {
         this.root.id = options.name;
         this.planet = options.planet;
 
-        this.stroke = options.stroke;
         this.radius = options.radius;
         
         this.path = document.createElementNS(SVG_NS,'polygon');
+        this.path.id = options.name+"-border";
 
         this.overlay = document.createElementNS(SVG_NS,'polygon');
-        this.overlay.style.setProperty("backgroundBlendMode","linear-burn");
-        this.overlay.setAttribute('fill','rgba(0,255,255,0.15)');
+        this.overlay.id = options.name+"-overlay";
 
         this.image = document.createElementNS(SVG_NS,'image');
         this.imageSrc = "/assets/gui/static.gif";
@@ -328,16 +313,14 @@ export class CategoryWindow implements SVGDrawableElement {
         this.imageSrc = "/assets/gui/static.gif";
         if(selectedWork!=null && selectedWork.image != "") {
             let preloadImage = selectedWork.image;
-            this.stroke.color = '#0FF';
-            this.overlay.setAttribute('fill','rgba(0,255,255,0.15)');
+            this.root.classList.remove('disabled');
             let img = new Image();
             img.onload = (e) => {
                 this.imageSrc = preloadImage;
             }
             img.src = preloadImage;
         } else if(selectedWork==null) {
-            this.stroke.color = '#CCC'
-            this.overlay.setAttribute('fill','rgba(128,128,128,0.15)');
+            this.root.classList.add('disabled');
         }
     }
 
@@ -424,16 +407,12 @@ export class CategoryWindow implements SVGDrawableElement {
             ${this.position.x},${this.position.y+this.dimensions.height-this.radius}
             ${this.position.x},${this.position.y+this.radius}`)
         let points = this.path.getAttribute('points') as string;
-        this.path.setAttribute ('stroke',this.stroke.color);
-        this.path.setAttribute ('stroke-width',this.stroke.width.toString());
-        this.path.setAttribute ('fill','none');
         this.mask.path.setAttribute('points',points)
         this.overlay.setAttribute ('points',points);
         this.image.setAttribute ('x',this.position.x.toString());
         this.image.setAttribute ('y',this.position.y.toString());
         this.image.setAttribute ('href',this.imageSrc);
         this.image.setAttribute ('width',this.dimensions.width.toString());
-        this.image.setAttribute ('clip-path',`url(#${this.mask.element.id})`);
     }
 }
 
@@ -464,7 +443,7 @@ export class SlideshowControls implements SVGDrawableElement {
         }
     }) {
         this.root = document.createElementNS(SVG_NS,'g');
-        this.name = options.name;
+        this.root.id = this.name = options.name;
 
         this.buttonsOptions = options.buttonsOptions;
         this.position = vec2.new(this.gui.width*0.25,this.gui.height*0.75);
@@ -507,7 +486,6 @@ export class SlideshowButton implements SVGDrawableElement {
         width: number,
         height: number
     }
-    public stroke: Stroke;
     public position: vec2;
     public offset: number;
     public opacity: number;
@@ -515,15 +493,11 @@ export class SlideshowButton implements SVGDrawableElement {
     constructor(public gui: SvgGUI, options: {
         index: number,
         controls: SlideshowControls,
-        radius: number,
-        stroke?: {
-            color: string,
-            width: number
-        }
+        radius: number
     }) {
         this.name = "slideshow-button-"+options.index;
         this.path = document.createElementNS(SVG_NS,'polygon');
-        this.path.setAttribute("class","slideshowButton");
+        this.path.classList.add("slideshowButton");
 
         this.index = options.index;
         this.controls = options.controls;
@@ -537,10 +511,7 @@ export class SlideshowButton implements SVGDrawableElement {
         this.row = this.index>3?1:0;
         this.position = vec2.create();
         this.offset = -this.controls.buttonsOptions.height;
-        this.stroke = options.stroke?options.stroke:{
-            color: "red",
-            width: 3
-        };
+
         this.opacity = 0;
 
         this.controls.root.append(this.path);
@@ -560,10 +531,7 @@ export class SlideshowButton implements SVGDrawableElement {
             ${this.position.x+this.radius},${this.position.y+this.dimensions.height}
             ${this.position.x},${this.position.y+this.dimensions.height-this.radius}
             ${this.position.x},${this.position.y+this.radius}`);
-        this.path.setAttribute('stroke',this.stroke.color);
-        this.path.setAttribute('stroke-width',this.stroke.width.toString());
         this.path.setAttribute('stroke-opacity',this.opacity.toString());
-        this.path.setAttribute('fill','none');
         this.path.setAttribute('opacity',this.opacity.toString());
     }
 }
@@ -576,30 +544,14 @@ export class ArticleWindow {
     constructor(public gui: SvgGUI) {
         this.container = document.createElement("div");
         this.container.id = "article-window";
-        this.container.style.position = "absolute";
-        this.container.style.top = "10vh";
-        this.container.style.left = "50vw";
-        this.container.style.width = "calc(50vw - 64px)"
-        this.container.style.height = "60vh";
         this.container.style.display = "none";
 
         this.htmlContainer = document.createElement("div");
-        this.htmlContainer.style.boxSizing = "border-box";
-        this.htmlContainer.style.padding = "0 1rem";
-        this.htmlContainer.style.border = "3px solid aqua";
-        this.htmlContainer.style.color = "aqua";
-        this.htmlContainer.style.background = "rgba(0, 37, 51, 0.333)";
-        (this.htmlContainer.style as any).backdropFilter = "blur(5px)";
+        this.htmlContainer.id = "article-window-html-container"
         this.htmlContainer.style.opacity = "0";
-        this.htmlContainer.style.width = "100%"
-        this.htmlContainer.style.height = "100%";
-        this.htmlContainer.style.overflow = "hidden scroll";
 
         this.backButton = document.createElement("button");
         this.backButton.innerHTML = "Go back";
-        this.backButton.style.fontSize = "18pt";
-        this.backButton.style.marginTop = "0.5rem";
-        this.backButton.style.padding = "0.25rem 1rem"
         this.backButton.disabled = true;
 
         this.container.appendChild(this.htmlContainer);
