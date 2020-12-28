@@ -3,6 +3,7 @@
 var webpack = require('webpack');
 var CopyWebpackPlugin = require('copy-webpack-plugin');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
+var TerserPlugin = require('terser-webpack-plugin');
 
 var path = require('path');
 
@@ -81,12 +82,7 @@ var config = {
             raw: false,
         }),
         */
-        new webpack.DefinePlugin({
-            "process.env": {
-                NODE_ENV: '"production"'
-            },
-            global_myou_engine_webpack_flags: JSON.stringify(myou_engine_flags)
-        }),
+        new webpack.DefinePlugin({global_myou_engine_webpack_flags: JSON.stringify(myou_engine_flags)}),
         new HtmlWebpackPlugin({
             filename: "index.html",
             template: path.resolve(__dirname,"index.html")
@@ -117,11 +113,10 @@ module.exports = (env={}) => {
         config.devtool = 'eval-source-map';
     }
     if(env.minify || env.uglify){
-        config.plugins.push(new webpack.optimize.UglifyJsPlugin({
-            screw_ie8: true,
-            sourceMap: false,
-            compress: { warnings: true },
-        }));
+        config.optimization = {
+            minimize: true,
+            minimizer: [new TerserPlugin()]
+        };
     }
     if(env.babel){
         // To use this option, install babel first with:
@@ -132,6 +127,5 @@ module.exports = (env={}) => {
             }
         }
     }
-    var {handle_myou_config} = require('myou-engine/webpack.config.js');
     return config;
 }

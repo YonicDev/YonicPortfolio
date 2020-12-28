@@ -4,8 +4,12 @@
   "description": "Portfolio for Mario Martínez Palacio",
   "main": "index.html",
   "scripts": {
-    "dev": "webpack serve",
-    "dev:sourcemaps": "webpack serve --env sourcemaps"
+    "dev": "webpack",
+    "dev:sourcemaps": "webpack --env sourcemaps",
+    "production": "webpack --progress --env production --env minify",
+    "serve:dev": "webpack serve --progress",
+    "serve:dev:sourcemaps": "webpack serve --progress --env sourcemaps",
+    "serve:production": "webpack serve --progress --env production --env minify"
   },
   "repository": {
     "type": "git",
@@ -44,6 +48,7 @@
     "sass": "^1.30.0",
     "sass-loader": "^10.1.0",
     "style-loader": "^2.0.0",
+    "terser-webpack-plugin": "^4.2.3",
     "ts-loader": "^8.0.12",
     "typescript": "^4.1.3",
     "webpack": "^4.44.1",
