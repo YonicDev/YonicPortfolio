@@ -74,14 +74,14 @@ export default class Camera {
     public orbitTo = (e:CustomEventInit<PlanetCardinal|number>): void => {
         let targetIndex: number;
         if(this.camera_object.scene.global_vars.game_state == "orbit") {
-            this.camera_object.scene.global_vars.game_state = "autoOrbit";
             if(typeof e.detail === "string") {
                 targetIndex = this.planet.triangleMap[this.planet.triangles.indexOf(this.planet.selectedTriangle)][e.detail]-1;
             } else if(typeof e.detail === "number") {
                 targetIndex = e.detail;
-            } else {
-                return;
-            }
+            } else { return; }
+            if(targetIndex < 0) { return; }
+
+            this.camera_object.scene.global_vars.game_state = "autoOrbit";
             
             const targetTriangle = this.planet.triangles[targetIndex];
             const targetPoint = this.planet.getTriangleCenter(targetIndex);
