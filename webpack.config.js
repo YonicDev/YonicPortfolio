@@ -1,6 +1,9 @@
 'use strict'
 
 var webpack = require('webpack');
+var CopyWebpackPlugin = require('copy-webpack-plugin');
+var HtmlWebpackPlugin = require('html-webpack-plugin');
+
 var path = require('path');
 
 var myou_engine_flags = {
@@ -70,6 +73,14 @@ var config = {
                 NODE_ENV: '"production"'
             },
         }),
+        new HtmlWebpackPlugin({
+            filename: "index.html",
+            template: path.resolve(__dirname,"index.html")
+        }),
+        new CopyWebpackPlugin({patterns:[
+            {from: path.resolve(__dirname,"assets"), to: path.resolve(__dirname,"build/assets")},
+            {from: path.resolve(__dirname,"data"), to: path.resolve(__dirname,"build/data")}
+        ]})
     ],
     resolve: {
         extensions: ['.webpack.js', '.web.js', '.js', '.coffee', '.json', '.ts'],
@@ -81,6 +92,10 @@ var config = {
         },
     },
     mode: 'development',
+    devServer: {
+        contentBase: path.resolve(__dirname, 'build'),
+        port: 8080
+    }
 }
 
 module.exports = (env={}) => {
@@ -88,8 +103,6 @@ module.exports = (env={}) => {
         config.mode = 'production';
     }
     if(env.sourcemaps){
-        console.log("Sourcemaps");
-        //config.devtool = 'cheap-module-eval-source-map';
         config.devtool = 'eval-source-map';
     }
     if(env.minify || env.uglify){
