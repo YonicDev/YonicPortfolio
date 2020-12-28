@@ -1,6 +1,6 @@
 import { vec3 } from 'vmath'
 import { Behaviour } from 'myou-engine'
-import { GameState } from './main';
+import { GameState, Media } from './main';
 const work_data: TriangleEntry[] = require('./articles/works.json');
 
 export interface TriangleEntry {
@@ -8,7 +8,7 @@ export interface TriangleEntry {
     title: string,
     image: string,
     description: string,
-    media: any[],
+    media: Media[],
     article: string
 }
 

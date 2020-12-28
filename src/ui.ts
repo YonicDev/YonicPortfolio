@@ -397,17 +397,17 @@ export class CategoryWindow implements SVGDrawableElement {
     }
 
     public draw = (): void => {
-        this.path.setAttribute('points',
-            `${this.position.x+this.radius},${this.position.y}
-            ${this.position.x+this.dimensions.width-this.radius},${this.position.y}
-            ${this.position.x+this.dimensions.width},${this.position.y+this.radius}
-            ${this.position.x+this.dimensions.width},${this.position.y+this.dimensions.height-this.radius}
-            ${this.position.x+this.dimensions.width-this.radius},${this.position.y+this.dimensions.height}
-            ${this.position.x+this.radius},${this.position.y+this.dimensions.height}
-            ${this.position.x},${this.position.y+this.dimensions.height-this.radius}
-            ${this.position.x},${this.position.y+this.radius}`)
-        let points = this.path.getAttribute('points') as string;
-        this.mask.path.setAttribute('points',points)
+        const points = `${this.position.x+this.radius},${this.position.y}
+        ${this.position.x+this.dimensions.width-this.radius},${this.position.y}
+        ${this.position.x+this.dimensions.width},${this.position.y+this.radius}
+        ${this.position.x+this.dimensions.width},${this.position.y+this.dimensions.height-this.radius}
+        ${this.position.x+this.dimensions.width-this.radius},${this.position.y+this.dimensions.height}
+        ${this.position.x+this.radius},${this.position.y+this.dimensions.height}
+        ${this.position.x},${this.position.y+this.dimensions.height-this.radius}
+        ${this.position.x},${this.position.y+this.radius}`;
+
+        this.path.setAttribute('points',points);
+        this.mask.path.setAttribute('points',points);
         this.overlay.setAttribute ('points',points);
         this.image.setAttribute ('x',this.position.x.toString());
         this.image.setAttribute ('y',this.position.y.toString());
@@ -479,7 +479,14 @@ export class SlideshowButton implements SVGDrawableElement {
     public name: string;
     public index: number;
     public radius: number;
+    public root: SVGGElement;
     public path: SVGPolygonElement;
+    public mask: {
+        element: SVGClipPathElement,
+        path: SVGPolygonElement
+    };
+    public image: SVGImageElement;
+    public imageSrc: string;
     public row: number;
     public controls: SlideshowControls;
     public dimensions: {
@@ -495,9 +502,21 @@ export class SlideshowButton implements SVGDrawableElement {
         controls: SlideshowControls,
         radius: number
     }) {
+        this.root = document.createElementNS(SVG_NS,'g');
+        this.root.classList.add("slideshowButton");
+
         this.name = "slideshow-button-"+options.index;
         this.path = document.createElementNS(SVG_NS,'polygon');
-        this.path.classList.add("slideshowButton");
+
+        this.mask = {
+            element: document.createElementNS(SVG_NS,"clipPath"),
+            path: document.createElementNS(SVG_NS,'polygon')
+        };
+        this.mask.element.id = `slideshow-button-mask-${options.index}`;
+
+        this.image = document.createElementNS(SVG_NS,'image');
+        this.image.style.clipPath = `url(#slideshow-button-mask-${options.index})`;
+        this.imageSrc = "";
 
         this.index = options.index;
         this.controls = options.controls;
@@ -514,7 +533,11 @@ export class SlideshowButton implements SVGDrawableElement {
 
         this.opacity = 0;
 
-        this.controls.root.append(this.path);
+        this.mask.element.append(this.mask.path);
+        this.root.append(this.mask.element);
+        this.root.append(this.image);
+        this.root.append(this.path);
+        this.controls.root.append(this.root);
     }
     public update = (fd: number): void => {
         vec2.set(this.position,
@@ -522,17 +545,26 @@ export class SlideshowButton implements SVGDrawableElement {
             this.offset+this.controls.position.y+(this.controls.buttonsOptions.height+this.controls.buttonsOptions.padding)*this.row);
     }
     public draw = (): void => {
-        this.path.setAttribute('points',
-            `${this.position.x+this.radius},${this.position.y}
-            ${this.position.x+this.dimensions.width-this.radius},${this.position.y}
-            ${this.position.x+this.dimensions.width},${this.position.y+this.radius}
-            ${this.position.x+this.dimensions.width},${this.position.y+this.dimensions.height-this.radius}
-            ${this.position.x+this.dimensions.width-this.radius},${this.position.y+this.dimensions.height}
-            ${this.position.x+this.radius},${this.position.y+this.dimensions.height}
-            ${this.position.x},${this.position.y+this.dimensions.height-this.radius}
-            ${this.position.x},${this.position.y+this.radius}`);
+        const points = `${this.position.x+this.radius},${this.position.y}
+        ${this.position.x+this.dimensions.width-this.radius},${this.position.y}
+        ${this.position.x+this.dimensions.width},${this.position.y+this.radius}
+        ${this.position.x+this.dimensions.width},${this.position.y+this.dimensions.height-this.radius}
+        ${this.position.x+this.dimensions.width-this.radius},${this.position.y+this.dimensions.height}
+        ${this.position.x+this.radius},${this.position.y+this.dimensions.height}
+        ${this.position.x},${this.position.y+this.dimensions.height-this.radius}
+        ${this.position.x},${this.position.y+this.radius}`;
+
+        this.path.setAttribute('points',points);
         this.path.setAttribute('stroke-opacity',this.opacity.toString());
         this.path.setAttribute('opacity',this.opacity.toString());
+
+        this.mask.path.setAttribute('points',points);
+
+        this.image.setAttribute('href',this.imageSrc);
+        this.image.setAttribute('x',this.position.x.toString());
+        this.image.setAttribute('y',this.position.y.toString());
+        this.image.setAttribute('width',this.dimensions.width.toString());
+        this.image.setAttribute('opacity',this.opacity.toString());
     }
 }
 

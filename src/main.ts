@@ -7,10 +7,9 @@ import DOMPurify from "dompurify";
 import { vec2 } from "vmath"
 
 import Camera from "./camera"
-import { Control } from "./control"
 import Planet, { TriangleEntry } from "./planet"
 import Background from "./background"
-import { ArticleWindow, CategoryWindow, SlideshowControls, SvgGUI, SvgLabel } from "./ui"
+import { CategoryWindow, SlideshowControls, SvgGUI, SvgLabel } from "./ui"
 
 const works:TriangleEntry[]  = require('./articles/works.json');
 
@@ -296,6 +295,12 @@ function initializeGUI(scene: any,planet: Planet) {
     scene.post_draw_callbacks.push(gui.update, bg.update);
 }
 
+export interface Media {
+    type: "image"|"video",
+    content: string,
+    thumbnail?: string
+}
+
 function displaySection(...params:gsap.CallbackVars[]) {
     const scene: any = params[0]
     const section: number = params[1] as number;
@@ -311,6 +316,12 @@ function displaySection(...params:gsap.CallbackVars[]) {
     md = DOMPurify.sanitize(md, {USE_PROFILES:{html: true}});
     
     gui.articleWindow.htmlContainer.innerHTML = md;
+
+    for(let i=0;i<work.media.length;i++) {
+        let w = work.media[i];
+        console.log(i,w.thumbnail,w.content);
+        slideshowControls.buttons[i].imageSrc = w.thumbnail!=null ? w.thumbnail : w.content;
+    }
 
     gsap.to(slideshowControls.buttons,{
         duration: 1,
