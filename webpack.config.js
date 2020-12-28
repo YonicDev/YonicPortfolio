@@ -6,6 +6,19 @@ var HtmlWebpackPlugin = require('html-webpack-plugin');
 
 var path = require('path');
 
+var myou_libs = ['ammo.asm.js','ammo.wasm.js','ammo.wasm.wasm'];
+var patterns = [
+    {from: path.resolve(__dirname,"assets"), to: path.resolve(__dirname,"build/assets")},
+    {from: path.resolve(__dirname,"data"), to: path.resolve(__dirname,"build/data")}
+]
+
+patterns.push(...myou_libs.map((myouLib) => {
+    return {
+      from: path.resolve(__dirname,'node_modules/myou-engine/engine/libs',myouLib),
+      to: path.resolve(__dirname,'build/libs')
+    }
+  }));
+
 var myou_engine_flags = {
     include_bullet: true,
 }
@@ -72,15 +85,13 @@ var config = {
             "process.env": {
                 NODE_ENV: '"production"'
             },
+            global_myou_engine_webpack_flags: JSON.stringify(myou_engine_flags)
         }),
         new HtmlWebpackPlugin({
             filename: "index.html",
             template: path.resolve(__dirname,"index.html")
         }),
-        new CopyWebpackPlugin({patterns:[
-            {from: path.resolve(__dirname,"assets"), to: path.resolve(__dirname,"build/assets")},
-            {from: path.resolve(__dirname,"data"), to: path.resolve(__dirname,"build/data")}
-        ]})
+        new CopyWebpackPlugin({patterns}),
     ],
     resolve: {
         extensions: ['.webpack.js', '.web.js', '.js', '.coffee', '.json', '.ts'],
@@ -122,5 +133,5 @@ module.exports = (env={}) => {
         }
     }
     var {handle_myou_config} = require('myou-engine/webpack.config.js');
-    return handle_myou_config(webpack, config, myou_engine_flags, env);
+    return config;
 }
