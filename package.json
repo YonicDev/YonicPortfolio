@@ -4,11 +4,11 @@
   "description": "Portfolio for Mario Martínez Palacio",
   "main": "index.html",
   "scripts": {
-    "dev": "webpack",
-    "dev:sourcemaps": "webpack --env sourcemaps",
+    "dev": "webpack --progress --env sourcemaps",
+    "dev:nosourcemaps": "webpack --progress",
     "production": "webpack --progress --env production --env minify",
-    "serve:dev": "webpack serve --progress",
-    "serve:dev:sourcemaps": "webpack serve --progress --env sourcemaps",
+    "serve:dev": "webpack serve --progress --env sourcemaps",
+    "serve:dev:nosourcemaps": "webpack serve --progress",
     "serve:production": "webpack serve --progress --env production --env minify"
   },
   "repository": {
