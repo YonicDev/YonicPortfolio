@@ -93,3 +93,6 @@ data/
 
 # Instances made by Blender
 *.blend[0-9]*
+
+# Creedentials
+creedentials.json

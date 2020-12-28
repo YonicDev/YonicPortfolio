@@ -10,6 +10,7 @@ import Camera from "./camera"
 import Planet, { TriangleEntry } from "./planet"
 import Background from "./background"
 import { CategoryWindow, SlideshowControls, SvgGUI, SvgLabel } from "./ui"
+import * as Youtube from './integrations/youtube'
 
 const works:TriangleEntry[]  = require('./articles/works.json');
 
@@ -26,6 +27,9 @@ const options = {
 }
 const myou = new Myou(canvas, options);
 (window as any).myou = myou;
+
+// YouTube integration
+gapi.load('client',Youtube.init)
 
 // Document styling
 document.body.style.overflow = "hidden";
@@ -296,16 +300,17 @@ function initializeGUI(scene: any,planet: Planet) {
 }
 
 export interface Media {
-    type: "image"|"video",
+    type: "image"|"youtube"|"video",
     content: string,
     thumbnail?: string
 }
 
-function displaySection(...params:gsap.CallbackVars[]) {
+async function displaySection(...params:gsap.CallbackVars[]) {
     const scene: any = params[0]
     const section: number = params[1] as number;
     scene.global_vars.game_state = "section";
     
+    const categoryWindow = gui.findElement('category-window') as CategoryWindow;
     const slideshowControls = gui.findElement('slideshow-controls') as SlideshowControls;
 
     const work: TriangleEntry = works.filter((w: TriangleEntry) => {
@@ -318,11 +323,16 @@ function displaySection(...params:gsap.CallbackVars[]) {
     gui.articleWindow.htmlContainer.innerHTML = md;
 
     for(let i=0;i<work.media.length;i++) {
-        let w = work.media[i];
-        console.log(i,w.thumbnail,w.content);
-        slideshowControls.buttons[i].imageSrc = w.thumbnail!=null ? w.thumbnail : w.content;
+        let media = work.media[i];
+        if(media.type == "image") {
+            slideshowControls.buttons[i].imageSrc = media.thumbnail!=null ? media.thumbnail : media.content;
+        } else if(media.type == "youtube") {
+            let video = await Youtube.getVideoInfo(media.content);
+            if(video.thumbnails != null && video.thumbnails.medium != null)
+                slideshowControls.buttons[i].imageSrc = video.thumbnails.medium.url as string;
+        }
     }
-
+    
     gsap.to(slideshowControls.buttons,{
         duration: 1,
         offset: 0,

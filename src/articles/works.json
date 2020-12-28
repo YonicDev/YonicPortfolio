@@ -4,7 +4,9 @@
         "title": "Prime VR",
         "image": "/assets/gui/prime-vr.png",
         "description":"",
-        "media": [],
+        "media": [
+            {"type": "youtube", "content": "MLDq8nrS4dY"}
+        ],
         "article": "prime-vr.md"
     },
     {
@@ -12,8 +14,9 @@
         "title": "About me",
         "image": "/assets/gui/logo-bg.png",
         "description":"",
-        "media": [],
-            {"type": "image", "content": "/assets/works/about/test.png", "thumbnail": "/assets/works/about/test.png"},
+        "media": [
+            {"type": "image", "content": "/assets/works/about/test.png", "thumbnail": "/assets/works/about/test.png"}
+        ],
         "article": "about.md"
     }
 ]
