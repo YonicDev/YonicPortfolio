@@ -12,63 +12,69 @@ import Background from "./background"
 import { CategoryWindow, SlideshowControls, SvgGUI, SvgLabel, Logo } from "./ui"
 import * as Youtube from './integrations/youtube'
 
-const works:TriangleEntry[]  = require('./articles/works.json');
+async function main() {
 
-const canvas: HTMLCanvasElement = create_full_window_canvas();
+    const works:TriangleEntry[]  = require('./articles/works.json');
 
-const options = {
-    data_dir: 'data',
-    debug: true,
-    gl_options: {
-        antialias: true,
-        alpha: true,
-        preserveDrawingBuffer: true
+    const canvas: HTMLCanvasElement = create_full_window_canvas();
+
+    const options = {
+        data_dir: 'data',
+        debug: true,
+        gl_options: {
+            antialias: true,
+            alpha: true,
+            preserveDrawingBuffer: true
+        }
     }
-}
-const myou = new Myou(canvas, options);
-(window as any).myou = myou;
+    const myou = new Myou(canvas, options);
 
-// YouTube integration
-gapi.load('client',Youtube.init)
+    // Convenience variables for console access
+    // They have $ in the name to avoid using them by mistake elsewhere
+    (window as any).$myou = myou;
+    (window as any).$MyouEngine = Myou;
+    (window as any).$vmath = require('vmath');
 
-// Document styling
-document.body.style.overflow = "hidden";
+    // YouTube integration
+    gapi.load('client',Youtube.init)
 
-// Background initialization
+    // Document styling
+    document.body.style.overflow = "hidden";
 
-const bg = new Background({
-    wave1Color: "rgba(5,252,186,0.0125)",
-    wave2Color: "rgba(5,252,186,0.05)",
-    triMesh: {
-        drawable: false,
-        active: false,
-        triSize: 50,
-        colors: ["lightseagreen","rgb(5,252,186)"],
-        alpha: 0
+    // Background initialization
+
+    const bg = new Background({
+        wave1Color: "rgba(5,252,186,0.0125)",
+        wave2Color: "rgba(5,252,186,0.05)",
+        triMesh: {
+            drawable: false,
+            active: false,
+            triSize: 50,
+            colors: ["lightseagreen","rgb(5,252,186)"],
+            alpha: 0
+        }
+    })
+    bg.init();
+    (window as any).bg = bg;
+
+    // SVG GUI Initialization
+    const gui = new SvgGUI(canvas,{});
+    (window as any).gui = gui;
+
+
+    // Profile logo
+    const profLogo = new Logo(canvas);
+
+    function handleLogoResize(e: UIEvent) {
+        profLogo.root.setAttribute("width",canvas.clientWidth*profLogo.transform.scale+"px");
+        profLogo.root.setAttribute("height",canvas.clientHeight*profLogo.transform.scale+"px");
     }
-})
-bg.init();
-(window as any).bg = bg;
 
-// SVG GUI Initialization
-const gui = new SvgGUI(canvas,{});
-(window as any).gui = gui;
-
-
-// Profile logo
-const profLogo = new Logo(canvas);
-
-function handleLogoResize(e: UIEvent) {
-    profLogo.root.setAttribute("width",canvas.clientWidth*profLogo.transform.scale+"px");
-    profLogo.root.setAttribute("height",canvas.clientHeight*profLogo.transform.scale+"px");
-}
-
-// Load the scene called "Scene", its objects and enable it
-myou.load_scene('Scene').then(async function (scene: any): Promise<any> {
+    // Load the scene called "Scene", its objects and enable it
+    let scene: any = await myou.load_scene('Scene');
     // At this point, the scene has loaded but not the meshes, textures, etc.
-    // We must call scene.load to tell which things we want to load.
 
-    function logoAnimation(): Promise<void> {
+    function portfolioLogoAnimation(): Promise<void> {
         return new Promise((resolve) => {
             profLogo.root.onanimationend = () => {
                 resolve();
@@ -78,10 +84,10 @@ myou.load_scene('Scene').then(async function (scene: any): Promise<any> {
 
     window.addEventListener('resize',handleLogoResize);
 
-    await logoAnimation();
+    await portfolioLogoAnimation();
 
-    return scene.load('visible','physics') as Promise<any>;
-}).then(function (scene: any) {
+    // We must call scene.load to tell which things we want to load.
+    scene = await scene.load('visible','physics');
 
     // This part will only run after objects have loaded.
     // At this point we can enable rendering and physics at the same time.
@@ -185,6 +191,82 @@ myou.load_scene('Scene').then(async function (scene: any): Promise<any> {
         }
     }
 
+    function initializeGUI(planet: Planet) {
+        gui.elements.push(new SvgLabel(gui,{
+            name:"label",
+            tailLength:40,
+            textMargin:vec2.new(20,0),
+            fontSize: 24,
+            planet
+        }),new CategoryWindow(gui,{
+            name:"category-window",
+            width:320,
+            height:180,
+            radius:15,
+            planet
+        }),new SlideshowControls(gui,{
+            name:"slideshow-controls",
+            buttonsOptions:{
+                width:160,
+                height:90,
+                padding:5,
+                radius: 15
+            }
+        }));
+        scene.post_draw_callbacks.push(gui.update, bg.update);
+    }
+
+    async function displaySection(...params:gsap.CallbackVars[]) {
+        const scene: any = params[0]
+        const section: number = params[1] as number;
+        scene.global_vars.game_state = "section";
+        
+        const categoryWindow = gui.findElement('category-window') as CategoryWindow;
+        const slideshowControls = gui.findElement('slideshow-controls') as SlideshowControls;
+    
+        const work: TriangleEntry = works.filter((w: TriangleEntry) => {
+            return w.triangle == section;
+        })[0];
+    
+        let md: string = require(`./articles/${work.article}`);
+        md = DOMPurify.sanitize(md, {USE_PROFILES:{html: true}});
+        
+        gui.articleWindow.htmlContainer.innerHTML = md;
+    
+        for(let i=0;i<work.media.length;i++) {
+            let media = work.media[i];
+            if(media.type == "image") {
+                slideshowControls.buttons[i].imageSrc = media.thumbnail!=null ? media.thumbnail : media.content;
+            } else if(media.type == "youtube") {
+                let video = await Youtube.getVideoInfo(media.content);
+                if(video.thumbnails != null && video.thumbnails.medium != null)
+                    slideshowControls.buttons[i].imageSrc = video.thumbnails.medium.url as string;
+            }
+        }
+        
+        gsap.to(slideshowControls.buttons,{
+            duration: 1,
+            offset: 0,
+            opacity: 1,
+            ease: "power2.out",
+            stagger: {
+                each: 0.1,
+                grid: [2,4],
+                from: "start",
+                axis: "x"
+            },
+            onComplete: () => {
+                gui.articleWindow.backButton.disabled = false;
+            }
+        });
+        gsap.set(gui.articleWindow.container.style,{display: 'block'})
+        gsap.to([gui.articleWindow.htmlContainer.style,gui.articleWindow.backButton.style],{
+            duration: 1,
+            opacity: 1,
+            ease: "power2.out"
+        })
+    }
+
     canvas.addEventListener('mousedown',enableCameraMove);
     canvas.addEventListener('touchstart',enableCameraMove);
 
@@ -193,7 +275,7 @@ myou.load_scene('Scene').then(async function (scene: any): Promise<any> {
     canvas.addEventListener('touchend', disableCameraMove);
     canvas.addEventListener('touchleave', disableCameraMove);
 
-    initializeGUI(scene,planet);
+    initializeGUI(planet);
 
     // Go to a section of the webpage.
     (window as any).goToSection = function (section: number) {
@@ -331,94 +413,14 @@ myou.load_scene('Scene').then(async function (scene: any): Promise<any> {
             delay: 5
         });
     };
-});
-
-function initializeGUI(scene: any,planet: Planet) {
-    gui.elements.push(new SvgLabel(gui,{
-        name:"label",
-        tailLength:40,
-        textMargin:vec2.new(20,0),
-        fontSize: 24,
-        planet
-    }),new CategoryWindow(gui,{
-        name:"category-window",
-        width:320,
-        height:180,
-        radius:15,
-        planet
-    }),new SlideshowControls(gui,{
-        name:"slideshow-controls",
-        buttonsOptions:{
-            width:160,
-            height:90,
-            padding:5,
-            radius: 15
-        }
-    }));
-    scene.post_draw_callbacks.push(gui.update, bg.update);
 }
+
+main();
 
 export interface Media {
     type: "image"|"youtube"|"video",
     content: string,
     thumbnail?: string
 }
-
-async function displaySection(...params:gsap.CallbackVars[]) {
-    const scene: any = params[0]
-    const section: number = params[1] as number;
-    scene.global_vars.game_state = "section";
-    
-    const categoryWindow = gui.findElement('category-window') as CategoryWindow;
-    const slideshowControls = gui.findElement('slideshow-controls') as SlideshowControls;
-
-    const work: TriangleEntry = works.filter((w: TriangleEntry) => {
-        return w.triangle == section;
-    })[0];
-
-    let md: string = require(`./articles/${work.article}`);
-    md = DOMPurify.sanitize(md, {USE_PROFILES:{html: true}});
-    
-    gui.articleWindow.htmlContainer.innerHTML = md;
-
-    for(let i=0;i<work.media.length;i++) {
-        let media = work.media[i];
-        if(media.type == "image") {
-            slideshowControls.buttons[i].imageSrc = media.thumbnail!=null ? media.thumbnail : media.content;
-        } else if(media.type == "youtube") {
-            let video = await Youtube.getVideoInfo(media.content);
-            if(video.thumbnails != null && video.thumbnails.medium != null)
-                slideshowControls.buttons[i].imageSrc = video.thumbnails.medium.url as string;
-        }
-    }
-    
-    gsap.to(slideshowControls.buttons,{
-        duration: 1,
-        offset: 0,
-        opacity: 1,
-        ease: "power2.out",
-        stagger: {
-            each: 0.1,
-            grid: [2,4],
-            from: "start",
-            axis: "x"
-        },
-        onComplete: () => {
-            gui.articleWindow.backButton.disabled = false;
-        }
-    });
-    gsap.set(gui.articleWindow.container.style,{display: 'block'})
-    gsap.to([gui.articleWindow.htmlContainer.style,gui.articleWindow.backButton.style],{
-        duration: 1,
-        opacity: 1,
-        ease: "power2.out"
-    })
-}
-
-// Convenience variables for console access
-// They have $ in the name to avoid using them by mistake elsewhere
-(window as any).$myou = myou;
-(window as any).$MyouEngine = Myou;
-(window as any).$vmath = require('vmath');
 
 export type GameState = "orbit"|"section"|"zooming"|"zoomOut"|"autoOrbit";
