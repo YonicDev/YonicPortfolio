@@ -3,6 +3,10 @@ $WINDOW_DISABLED_COLOR: gray;
 
 $LABEL_COLOR: cyan;
 
+$LOGO_COLOR: lightcyan;
+
+$BACKGROUND_COLOR: #05160f;
+
 body {
     overflow: hidden;
 }
@@ -94,4 +98,107 @@ body {
             fill: none;
         }
     }
+}
+
+#logo {
+    z-index: 5;
+    position: fixed;
+    top:0;
+    background-color: $BACKGROUND_COLOR;
+    transition: background-color 2.5s ease-out, backdrop-filter 2s ease-out;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    backdrop-filter: blur(5px);
+
+    svg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        transform: translate(0%,0%);
+
+        line {
+            fill:none;
+            stroke: $LOGO_COLOR;
+            stroke-width:4;
+            stroke-linecap:round;
+            stroke-linejoin:round;
+            stroke-miterlimit: 10;
+            stroke-dasharray: 800;
+            stroke-dashoffset:800;
+            animation: dash 1s forwards;
+        }
+        .st0 {
+            animation-timing-function: cubic-bezier(.3,.18,.92,.71);
+        }
+        .st1 {
+            animation-delay: 0.333s;
+            animation-timing-function: cubic-bezier(.36,.25,.8,.81);
+        }
+        .st2 {
+            animation-delay: 0.666s;
+            animation-timing-function: cubic-bezier(.31,.29,.74,.95);
+        }
+        .st3 {
+            stroke-width:6;
+            animation-delay: 0.888s;
+            animation-timing-function: cubic-bezier(.33,.41,.43,1.01);
+        }
+        .st4{
+            fill:none;
+            stroke: $LOGO_COLOR;
+            stroke-width:2;
+            stroke-miterlimit: 10;
+            stroke-dasharray: 800;
+            stroke-dashoffset:800;
+            animation: dash 1.75s linear forwards;
+        }
+        
+        #NAME {
+            animation: show-name 0.5s ease-out both;
+            animation-delay: 0.8s;
+            fill: $LOGO_COLOR;
+        }
+    
+        #TITLE {
+            animation: show-title 0.5s ease-out both;
+            animation-delay: 1s;
+            fill: $LOGO_COLOR;
+        }
+        
+        @keyframes dash {
+            from {
+                stroke-dashoffset: 800;
+            }
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+    
+        @keyframes show-name {
+            from {
+                transform:translateY(-50px);
+                opacity:0;
+            }
+            to {
+                transform:translateY(0px);
+                opacity:1;
+            }
+        }
+        @keyframes show-title {
+            from {
+                transform:translateX(100px);
+                opacity:0;
+            }
+            to {
+                transform:translateX(0px);
+                opacity:1;
+            }
+        }
+    }
+}
+
+#logo.small {
+    background-color: rgba($BACKGROUND_COLOR,0%);
+    backdrop-filter: blur(0px);
 }

@@ -9,7 +9,7 @@ import { vec2 } from "vmath"
 import Camera from "./camera"
 import Planet, { TriangleEntry } from "./planet"
 import Background from "./background"
-import { CategoryWindow, SlideshowControls, SvgGUI, SvgLabel } from "./ui"
+import { CategoryWindow, SlideshowControls, SvgGUI, SvgLabel, Logo } from "./ui"
 import * as Youtube from './integrations/youtube'
 
 const works:TriangleEntry[]  = require('./articles/works.json');
@@ -54,16 +54,75 @@ bg.init();
 const gui = new SvgGUI(canvas,{});
 (window as any).gui = gui;
 
+
+// Profile logo
+const profLogo = new Logo(canvas);
+
+function handleLogoResize(e: UIEvent) {
+    profLogo.root.setAttribute("width",canvas.clientWidth*profLogo.transform.scale+"px");
+    profLogo.root.setAttribute("height",canvas.clientHeight*profLogo.transform.scale+"px");
+}
+
 // Load the scene called "Scene", its objects and enable it
-myou.load_scene('Scene').then(function (scene: any): Promise<any> {
+myou.load_scene('Scene').then(async function (scene: any): Promise<any> {
     // At this point, the scene has loaded but not the meshes, textures, etc.
     // We must call scene.load to tell which things we want to load.
+
+    function logoAnimation(): Promise<void> {
+        return new Promise((resolve) => {
+            profLogo.root.onanimationend = () => {
+                resolve();
+            }
+        })
+    }
+
+    window.addEventListener('resize',handleLogoResize);
+
+    await logoAnimation();
+
     return scene.load('visible','physics') as Promise<any>;
 }).then(function (scene: any) {
+
     // This part will only run after objects have loaded.
     // At this point we can enable rendering and physics at the same time.
     // Otherwise we would have a black screen.
     scene.enable('render','physics');
+
+    profLogo.container.classList.add("small");
+
+    let currentDimensions = {
+        width: canvas.clientWidth,
+        height: canvas.clientHeight
+    };
+
+    const logoAnimation = gsap.to(profLogo.transform,{
+        scale: 0.15,
+        marginLeft: -50,
+        marginTop: -100,
+        top: 100,
+        left: 50,
+        duration: 2,
+        onUpdate:() => {
+            profLogo.root.setAttribute("width",currentDimensions.width*profLogo.transform.scale+"px");
+            profLogo.root.setAttribute("height",currentDimensions.height*profLogo.transform.scale+"px");
+            profLogo.root.style.top = profLogo.transform.top+"vh";
+            profLogo.root.style.left = profLogo.transform.left+"vw";
+            profLogo.root.style.transform = `translate(${profLogo.transform.marginLeft}%, ${profLogo.transform.marginTop}%)`;
+        },
+        ease: "power1.inOut"
+    })
+
+    window.removeEventListener('resize',handleLogoResize);
+    window.addEventListener('resize',() => {
+        currentDimensions = {
+            width: canvas.clientWidth,
+            height: canvas.clientHeight
+        }
+        if(!logoAnimation.isActive()) {
+            profLogo.root.setAttribute("width",currentDimensions.width*profLogo.transform.scale+"px");
+            profLogo.root.setAttribute("height",currentDimensions.height*profLogo.transform.scale+"px");
+        }
+    })
 
     scene.global_vars = {
         game_state: "orbit" as GameState

@@ -591,3 +591,30 @@ export class ArticleWindow {
         document.body.appendChild(this.container);
     }
 }
+
+export class Logo {
+    public container:HTMLDivElement;
+    public root:SVGElement;
+
+    public transform = { 
+        marginLeft: 0,
+        marginTop: 0,
+        left: 0,
+        top: 0,
+        scale: 1
+    }
+
+    constructor(public canvas3d:HTMLCanvasElement) {
+        const raw: string = require('!!raw-loader!../assets/logo/logo_animated.svg').default;
+        this.container = document.createElement("div");
+        this.container.id = "logo";
+        this.container.innerHTML = raw;
+
+        this.root = this.container.getElementsByTagName("svg")[0];
+
+        this.root.setAttribute("width",canvas3d.clientWidth+"px");
+        this.root.setAttribute("height",canvas3d.clientHeight+"px");
+        
+        document.body.append(this.container);
+    }
+}
