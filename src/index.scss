@@ -7,13 +7,15 @@ $LOGO_COLOR: lightcyan;
 
 $BACKGROUND_COLOR: #05160f;
 
+$CORNER: 10px;
+$BORDER_THICKNESS: 3px;
+
 body {
     overflow: hidden;
 }
 
 #article-window {
     position: absolute;
-    top: 10vh;
     left: 50vw;
     width: calc(50vw - 64px);
     height: 60vh;
@@ -40,63 +42,18 @@ body {
         margin-top: 0.5rem;
         padding: 0.25rem 1rem;
     }
+    > button:hover {
+        width: 100%;
+    }
+    > button::after {
+        content:"Go back";
+    }
 }
 
 @supports(backdrop-filter: blur(1px)) {
     #article-window > #article-window-html-container {
         backdrop-filter: blur(5px);
         background-color: rgba(0, 37, 51, 33%);
-    }
-}
-
-#svg_gui {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 1;
-    pointer-events: none;
-
-    > #label {
-        > path {
-            stroke-width: 2px;
-            color: $LABEL_COLOR;
-            fill: none;
-        }
-        > text {
-            font-size: 24px;
-            font-family: sans-serif;
-        }
-    }
-
-    > #category-window {
-        > #category-window-overlay {
-            background-blend-mode: overlay;
-            fill:rgba($WINDOW_BORDER_COLOR,15%);
-        }
-        > #category-window-border {
-            stroke: $WINDOW_BORDER_COLOR;
-            stroke-width: 4;
-            fill: none;
-        }
-        > image {
-            clip-path: url(#category-window-mask);
-        }
-    }
-    > #category-window.disabled {
-        > #category-window-overlay {
-            fill:rgba($WINDOW_DISABLED_COLOR,15%);
-        }
-        > #category-window-border {
-            stroke: lighten($WINDOW_DISABLED_COLOR,50%);
-        }
-    }
-
-    > #slideshow-controls {
-        .slideshowButton {
-            stroke: $WINDOW_BORDER_COLOR;
-            stroke-width: 3;
-            fill: none;
-        }
     }
 }
 
@@ -201,4 +158,164 @@ body {
 #logo.small {
     background-color: rgba($BACKGROUND_COLOR,0%);
     backdrop-filter: blur(0px);
+}
+
+#slideshow-grid {
+    display: grid;
+    height: 50vh;
+    width: 40vw;
+    position: fixed;
+    grid-template-columns: auto auto auto auto auto;
+    grid-template-rows: 66.6% auto auto;
+    grid-gap: 3px;
+
+    .box {
+        height: 100%;
+        display:inline-block;
+        position:relative;
+
+        > .content, > .border {
+            position:absolute;
+            top:0;
+            left:0;
+            right:0;
+            bottom:0;
+            content:"";
+            clip-path: polygon(#{$CORNER} 0%, calc(100% - #{$CORNER}) 0%, 100% #{$CORNER}, 100% calc(100% - #{$CORNER}), calc(100% - #{$CORNER}) 100%, #{$CORNER} 100%, 0% calc(100% - #{$CORNER}), 0% #{$CORNER});
+            background-position: center;
+            background-size: cover;
+        }
+    
+        > .border {
+            $GRAD: transparent 49.5%,$WINDOW_BORDER_COLOR 50%;
+            background: 
+                linear-gradient(to top right   ,#{$GRAD}) top    right,
+                linear-gradient(to top left    ,#{$GRAD}) top    left,
+                linear-gradient(to bottom right,#{$GRAD}) bottom right,
+                linear-gradient(to bottom left ,#{$GRAD}) bottom left;
+            background-size:calc(#{$CORNER} - #{$BORDER_THICKNESS}) calc(#{$CORNER} - #{$BORDER_THICKNESS});
+            background-repeat:no-repeat;
+            border: #{$BORDER_THICKNESS} solid $WINDOW_BORDER_COLOR;
+            opacity: 1;
+        }
+    }
+
+    .box.hidden {
+        display: none;
+    }
+
+    .box.invisible {
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    .box.slideshow-button {
+        opacity: 0;
+        top: -33.3%;
+    }
+
+    .box.header {
+        grid-column: 1 / 6;
+        > .content {
+            background-color:rgba($WINDOW_BORDER_COLOR,15%);
+            background-blend-mode: overlay;
+        }
+    }
+
+    .box.unavailable {
+        > .content {
+            background-color:rgba($WINDOW_DISABLED_COLOR,15%);
+        }
+        > .border {
+            $GRAD: transparent 49.5%,lighten($WINDOW_DISABLED_COLOR,50%) 50%;
+            background: 
+                linear-gradient(to top right   ,#{$GRAD}) top    right,
+                linear-gradient(to top left    ,#{$GRAD}) top    left,
+                linear-gradient(to bottom right,#{$GRAD}) bottom right,
+                linear-gradient(to bottom left ,#{$GRAD}) bottom left;
+            background-size:calc(#{$CORNER} - #{$BORDER_THICKNESS}) calc(#{$CORNER} - #{$BORDER_THICKNESS});
+            background-repeat:no-repeat;
+            border: #{$BORDER_THICKNESS} solid lighten($WINDOW_DISABLED_COLOR,50%);
+            opacity: 1;
+        }
+    }
+
+}
+
+#label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    > path {
+        stroke-width: 2px;
+        color: $LABEL_COLOR;
+        fill: none;
+    }
+    > text {
+        font-size: 24px;
+        font-family: sans-serif;
+    }
+}
+
+button {
+    color: $WINDOW_BORDER_COLOR;
+    font-size: 16pt;
+    padding: 0.25rem 1rem;
+    width: 8rem;
+    height: 35px;
+    transition-property: background-color, background-image, border, color, width;
+    transition-duration: 0.333s;
+    transition-timing-function: ease-out;
+    transition-delay: 0;
+    background: none;
+    border: none;
+    position: absolute;
+}
+
+button::before,
+button::after {
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+    content:"";
+    clip-path: polygon(#{$CORNER} 0%, calc(100% - #{$CORNER}) 0%, 100% #{$CORNER}, 100% calc(100% - #{$CORNER}), calc(100% - #{$CORNER}) 100%, #{$CORNER} 100%, 0% calc(100% - #{$CORNER}), 0% #{$CORNER});
+    background-color:darken($WINDOW_BORDER_COLOR,30%);
+}
+
+button::after {
+    $GRAD: transparent 49.5%,$WINDOW_BORDER_COLOR 50%;
+    background: 
+        linear-gradient(to top right   ,#{$GRAD}) top    right,
+        linear-gradient(to top left    ,#{$GRAD}) top    left,
+        linear-gradient(to bottom right,#{$GRAD}) bottom right,
+        linear-gradient(to bottom left ,#{$GRAD}) bottom left;
+    background-size:calc(#{$CORNER} - 2px) calc(#{$CORNER} - 2px);
+    background-repeat:no-repeat;
+    border: 2px solid $WINDOW_BORDER_COLOR;
+    content: "Explore"
+}
+
+button:hover {
+    color: darken($WINDOW_BORDER_COLOR,25%);
+    width: calc(15vw - 20px - 1rem);
+}
+
+button:hover::before,
+button:hover::after {
+    background-color: $WINDOW_BORDER_COLOR;
+}
+
+button:hover::after {
+    $GRAD: transparent 49.5%,darken($WINDOW_BORDER_COLOR,25%) 50%;
+    background: 
+        linear-gradient(to top right   ,#{$GRAD}) top    right,
+        linear-gradient(to top left    ,#{$GRAD}) top    left,
+        linear-gradient(to bottom right,#{$GRAD}) bottom right,
+        linear-gradient(to bottom left ,#{$GRAD}) bottom left;
+    background-size:calc(#{$CORNER} - 3px) calc(#{$CORNER} - 3px);
+    background-repeat:no-repeat;
+    border: 3px solid darken($WINDOW_BORDER_COLOR,25%);
 }

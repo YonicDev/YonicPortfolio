@@ -2,6 +2,9 @@ import "./index.scss";
 
 import { Myou, create_full_window_canvas } from "myou-engine"
 import gsap from "gsap"
+const {DrawSVGPlugin} = require("../lib/DrawSVGPlugin3.min.js");
+gsap.registerPlugin(DrawSVGPlugin);
+
 import DOMPurify from "dompurify";
 
 import { vec2 } from "vmath"
@@ -9,7 +12,7 @@ import { vec2 } from "vmath"
 import Camera from "./camera"
 import Planet, { TriangleEntry } from "./planet"
 import Background from "./background"
-import { CategoryWindow, SlideshowControls, SvgGUI, SvgLabel, Logo } from "./ui"
+import { Logo, GUIContainer } from "./ui"
 import * as Youtube from './integrations/youtube'
 
 async function main() {
@@ -57,10 +60,8 @@ async function main() {
     bg.init();
     (window as any).bg = bg;
 
-    // SVG GUI Initialization
-    const gui = new SvgGUI(canvas,{});
-    (window as any).gui = gui;
-
+    // GUI Initialization
+    let gui: GUIContainer;
 
     // Profile logo
     const profLogo = new Logo(canvas);
@@ -173,18 +174,18 @@ async function main() {
         if(e.type == 'mousedown') {
             let ev = e as MouseEvent;
             vec2.set(camera.rotation_origin,ev.clientX,ev.clientY);
-            canvas.addEventListener('mousemove',rotateCamera);
+            document.body.addEventListener('mousemove',rotateCamera);
         } else if (e.type == 'touchstart') {
             let ev = e as TouchEvent;
             vec2.set(camera.rotation_origin,ev.touches[0].clientX,ev.touches[0].clientY);
             e.preventDefault();
-            canvas.addEventListener('touchmove',rotateCamera);
+            document.body.addEventListener('touchmove',rotateCamera);
         }
     }
     function disableCameraMove(e: Event) {
         Object.assign(camera.initial_rotation,camera.camera_parent.rotation);
-        if(e.type == 'mouseup' || e.type == 'mouseout')
-            canvas.removeEventListener('mousemove',rotateCamera);
+        if(e.type == 'mouseup' || e.type == 'mouseleave')
+            document.body.removeEventListener('mousemove',rotateCamera);
         else if(e.type == 'touchend' || e.type == 'touchleave') {
             e.preventDefault();
             canvas.removeEventListener('touchmove', rotateCamera);
@@ -192,137 +193,226 @@ async function main() {
     }
 
     function initializeGUI(planet: Planet) {
-        gui.elements.push(new SvgLabel(gui,{
-            name:"label",
-            tailLength:40,
-            textMargin:vec2.new(20,0),
-            fontSize: 24,
-            planet
-        }),new CategoryWindow(gui,{
-            name:"category-window",
-            width:320,
-            height:180,
-            radius:15,
-            planet
-        }),new SlideshowControls(gui,{
-            name:"slideshow-controls",
-            buttonsOptions:{
-                width:160,
-                height:90,
-                padding:5,
-                radius: 15
-            }
-        }));
-        scene.post_draw_callbacks.push(gui.update, bg.update);
+        gui = new GUIContainer(canvas,{
+            tailLength: 100,
+            planet,
+            textMargin: vec2.new(20,0),
+            fontSize: 12
+        });
+        (window as any).gui = gui;
+        gui.exploreButton.button.onclick = () => {
+            goToSection(planet.selectedTriangle.index);
+        };
+
+        scene.post_draw_callbacks.push(bg.update, gui.update);
+
+        gui.articleWindow.backButton.onclick = (window as any).returnToOrbit = function () {
+            scene.global_vars.game_state = "zoomOut";
+    
+            gui.articleWindow.backButton.disabled = true;
+    
+            bg.showWaves();
+            gsap.to([gui.articleWindow.htmlContainer.style,gui.articleWindow.backButton.style],{
+                duration: 1,
+                opacity: 0,
+                ease: "power2.out",
+                onComplete: () => {
+                    gui.articleWindow.container.style.display = "none";
+                }
+            })
+            gsap.to(".slideshow-button", {
+                duration:1,
+                top: -gui.slideshow.elements[2].container.clientHeight,
+                opacity: 0,
+                ease:"power2.In",
+                stagger: {
+                    each:0.1,
+                    grid:[2,5],
+                    from:"end",
+                    axis:"x"
+                },
+                onComplete: () => {
+                    for(let i=2;i<gui.slideshow.elements.length;i++) {
+                        gui.slideshow.elements[i].container.classList.add("invisible");
+                    }
+                    gui.slideshow.spacer.container.classList.remove("hidden");
+                    gsap.to(gui.slideshow.categoryWindow.content,{
+                        opacity: 0,
+                        duration: 0.5,
+                    });
+                    gsap.to(gui.slideshow.categoryWindow.container,{
+                        position:"absolute",
+                        left:  canvas.clientWidth - canvas.clientWidth*gui.slideshow.categoryWindow.SIZE_NUM - 75*2,
+                        top: canvas.clientHeight*0.5 - (canvas.clientWidth*gui.slideshow.categoryWindow.SIZE_NUM * 9/16)*0.5 - gui.slideshow.container.offsetTop,
+                        duration: 4,
+                        width: canvas.clientWidth * gui.slideshow.categoryWindow.SIZE_NUM,
+                        height: canvas.clientWidth * gui.slideshow.categoryWindow.SIZE_NUM * 9 / 16,
+                        ease: "power2.inOut",
+                        onComplete: function() {
+                            gui.slideshow.categoryWindow.container.style.width = gui.slideshow.categoryWindow.SIZE;
+                            gui.slideshow.categoryWindow.container.style.height = `calc(${gui.slideshow.categoryWindow.SIZE} * 9/16)`;
+                            gui.exploreButton.button.disabled = false;
+                            scene.global_vars.game_state = "orbit";
+                        }
+                    });
+                    gsap.to(gui.exploreButton.button,{
+                        opacity:1,
+                        duration:0.5,
+                        display:"",
+                        delay:3,
+                    })
+                }
+            });
+            gsap.to(camera.camera_object.position, {
+                duration:2,
+                x:camera.initial_position.x,
+                y:camera.initial_position.y,
+                z:camera.initial_position.z,
+                ease:"power2.inOut",
+                delay: 1
+            })
+            gsap.to(gui.label.line,{
+                drawSVG:"100%",
+                duration: 1,
+                delay: 3,
+            })
+            gsap.to(gui.label.label.element,{
+                opacity:1,
+                duration: 0.5,
+                delay: 3,
+            })
+            gsap.to(gui.slideshow.categoryWindow.content,{
+                opacity: 1,
+                duration: 0.5,
+                delay: 5,
+            });
+        };
     }
 
     async function displaySection(...params:gsap.CallbackVars[]) {
-        const scene: any = params[0]
-        const section: number = params[1] as number;
+        const section: number = params[0] as number;
         scene.global_vars.game_state = "section";
-        
-        const categoryWindow = gui.findElement('category-window') as CategoryWindow;
-        const slideshowControls = gui.findElement('slideshow-controls') as SlideshowControls;
-    
+        gui.slideshow.categoryWindow.container.style.width = "";
+        gui.slideshow.categoryWindow.container.style.height = "";
+
         const work: TriangleEntry = works.filter((w: TriangleEntry) => {
             return w.triangle == section;
         })[0];
-    
+
         let md: string = require(`./articles/${work.article}`);
         md = DOMPurify.sanitize(md, {USE_PROFILES:{html: true}});
-        
         gui.articleWindow.htmlContainer.innerHTML = md;
-    
+        
+        for(let i=2;i<gui.slideshow.elements.length;i++) {
+            gui.slideshow.elements[i].container.classList.remove("invisible");
+        }
         for(let i=0;i<work.media.length;i++) {
             let media = work.media[i];
             if(media.type == "image") {
-                slideshowControls.buttons[i].imageSrc = media.thumbnail!=null ? media.thumbnail : media.content;
+                gui.slideshow.elements[i+2].content.style.backgroundImage = `url("${media.thumbnail!=null ? media.thumbnail : media.content}")`;
+                if(i==0) {
+                    gui.slideshow.categoryWindow.content.style.backgroundImage = gui.slideshow.elements[i+2].content.style.backgroundImage;
+                }
             } else if(media.type == "youtube") {
                 let video = await Youtube.getVideoInfo(media.content);
-                if(video.thumbnails != null && video.thumbnails.medium != null)
-                    slideshowControls.buttons[i].imageSrc = video.thumbnails.medium.url as string;
+                if(video.thumbnails != null && video.thumbnails.medium != null) {
+                    if(i==0 && video.thumbnails.maxres != null) {
+                        gui.slideshow.categoryWindow.content.style.backgroundImage = `url("${video.thumbnails.maxres.url as string}")`;
+                    }
+                    gui.slideshow.elements[i+2].content.style.backgroundImage = `url("${video.thumbnails.medium.url as string}")`;
+                }
             }
         }
-        
-        gsap.to(slideshowControls.buttons,{
-            duration: 1,
-            offset: 0,
-            opacity: 1,
-            ease: "power2.out",
-            stagger: {
-                each: 0.1,
-                grid: [2,4],
-                from: "start",
-                axis: "x"
-            },
-            onComplete: () => {
-                gui.articleWindow.backButton.disabled = false;
-            }
-        });
-        gsap.set(gui.articleWindow.container.style,{display: 'block'})
+
+        gui.articleWindow.container.style.display = "";
         gsap.to([gui.articleWindow.htmlContainer.style,gui.articleWindow.backButton.style],{
             duration: 1,
             opacity: 1,
-            ease: "power2.out"
+            ease: "power2.out",
+            onComplete: () => {
+                gui.articleWindow.backButton.disabled = false;
+            }
+        })
+        gsap.to(".slideshow-button", {
+            duration:1,
+            top: 0,
+            opacity: 1,
+            ease:"power2.Out",
+            stagger: {
+                each:0.1,
+                grid:[2,5],
+                from:"start",
+                axis:"x"
+            },
+        });
+        gsap.to(gui.slideshow.categoryWindow.content,{
+            backgroundColor:"transparent",
+            opacity: 1,
+            duration:1,
         })
     }
 
-    canvas.addEventListener('mousedown',enableCameraMove);
-    canvas.addEventListener('touchstart',enableCameraMove);
+    document.body.addEventListener('mousedown',enableCameraMove);
+    document.body.addEventListener('touchstart',enableCameraMove);
 
-    canvas.addEventListener('mouseout', disableCameraMove);
-    canvas.addEventListener('mouseup', disableCameraMove);
-    canvas.addEventListener('touchend', disableCameraMove);
-    canvas.addEventListener('touchleave', disableCameraMove);
+    document.body.addEventListener('mouseleave', disableCameraMove);
+    document.body.addEventListener('mouseup', disableCameraMove);
+    document.body.addEventListener('touchend', disableCameraMove);
+    document.body.addEventListener('touchleave', disableCameraMove);
 
     initializeGUI(planet);
 
     // Go to a section of the webpage.
-    (window as any).goToSection = function (section: number) {
-        let label = gui.findElement('label') as SvgLabel;
-        let catWindow = gui.findElement('category-window') as CategoryWindow;
-
+    function goToSection(section: number) {
         canvas.removeEventListener('mousedown',enableCameraMove);
         canvas.removeEventListener('touchstart',enableCameraMove);
 
         let target = planet.getTriangleCenter(section-1);
         scene.global_vars.game_state = "zooming";
 
+        gui.exploreButton.button.disabled = true;
+
         bg.showStars();
 
-        gsap.set(label.stroke,{animation_direction:"forwards"});
-        gsap.to(label.label.element,{duration:0.5,opacity:0});
-
-        let toWidth = gui.width/3;
-        let toHeight = gui.height*0.5;
-
-        gsap.to(catWindow,{
-            duration: 4,
-            onComplete: displaySection,
-            onCompleteParams: [scene,section],
-            delay: 1
-        })
-        catWindow.rescaleTween = gsap.to(catWindow.dimensions, {
-            duration: 4,
-            maxWidth: toWidth,
-            maxHeight: toHeight,
-            ease: "power2.inOut",
-            delay: 1,
-            overwrite: true
+        gsap.to(gui.label.line,{
+            drawSVG:"0%",
+            duration:1,
         });
-        catWindow.repositionTween = gsap.to(catWindow.position,{
-            duration: 4,
-            x: catWindow.gui.width*0.25-toWidth*0.5,
-            y: catWindow.gui.height*0.5-toHeight*0.75,
-            ease: "power2.inOut",
-            delay: 1,
-            overwrite: true
-        });
-        gsap.to(catWindow.image,{
+        gsap.to(gui.label.label.element,{
+            opacity:0,
             duration: 0.5,
-            opacity: 0,
-            delay: 1
         })
+
+        gsap.to(gui.slideshow.categoryWindow.container,{
+            position:"relative",
+            left: "0px",
+            top: "0px",
+            duration: 4,
+            delay: 1,
+            width: gui.slideshow.spacer.container.clientWidth,
+            height: gui.slideshow.spacer.container.clientHeight,
+            ease: "power2.inOut",
+            onStart: function() {
+                gui.slideshow.spacer.container.classList.add("hidden");
+            },
+            onComplete: displaySection,
+            onCompleteParams: [section]
+        })
+
+        gsap.to(gui.slideshow.categoryWindow.content,{
+            opacity: 0,
+            duration: 0.5,
+            delay: 1,
+        });
+
+        gsap.to(gui.exploreButton.button,{
+            opacity:0,
+            duration:0.5,
+            onComplete: () => {
+                gui.exploreButton.button.style.display = "none";
+            }
+        })
+
         gsap.to(camera.camera_object,{
             duration: 2,
             world_position_x: target.x,
@@ -332,87 +422,8 @@ async function main() {
             delay: 1
         });
     };
-    gui.articleWindow.backButton.onclick = (window as any).returnToOrbit = function () {
-        scene.global_vars.game_state = "zoomOut";
 
-        let label = gui.findElement("label") as SvgLabel;
-        let catWindow = gui.findElement("category-window") as CategoryWindow;
-        let slideshowControls = gui.findElement("slideshow-controls") as SlideshowControls;
-
-        gui.articleWindow.backButton.disabled = true;
-
-        bg.showWaves();
-        gsap.to([gui.articleWindow.htmlContainer.style,gui.articleWindow.backButton.style],{
-            duration: 1,
-            opacity: 0,
-            ease: "power2.out"
-        })
-        gsap.set(gui.articleWindow.container.style,{
-            display: 'none',
-            delay: 1
-        })
-        gsap.to(slideshowControls.buttons,{
-            duration:1,
-            offset: -slideshowControls.buttonsOptions.height,
-            opacity: 0,
-            ease:"power2.In",
-            stagger: {
-                each:0.1,
-                grid:[2,4],
-                from:"end",
-                axis:"x"
-            }
-        })
-        gsap.to(camera.camera_object.position, {
-            duration:2,
-            x:camera.initial_position.x,
-            y:camera.initial_position.y,
-            z:camera.initial_position.z,
-            ease:"power2.inOut",
-            delay: 1
-        })
-        gsap.set(label.stroke, {
-            animation_direction:"backwards",
-            delay: 3
-        })
-        gsap.to(label.label.element, {
-            duration:0.5,
-            opacity:1,
-            delay: 3
-        })
-        gsap.to(catWindow,{
-            duration: 4,
-            delay: 1,
-            onComplete:function(...args:any[]) {
-                let scene = args[0];
-                canvas.addEventListener('mousedown', enableCameraMove)
-                canvas.addEventListener('touchstart', enableCameraMove)
-
-                scene.global_vars.game_state = "orbit";
-            },
-            onCompleteParams: [scene]
-        })
-        catWindow.rescaleTween = gsap.to(catWindow.dimensions, {
-            duration:4,
-            maxWidth:320,
-            maxHeight:180,
-            ease:"power2.inOut",
-            delay: 1,
-            overwrite: true
-        })
-        catWindow.repositionTween = gsap.to(catWindow.position, {
-            duration:4,
-            x:catWindow.gui.width*0.75,
-            y:catWindow.gui.height*0.4,
-            ease:"power2.inOut",
-            delay: 1
-        })
-        gsap.to(catWindow.image, {
-            duration:0.5,
-            opacity:1,
-            delay: 5
-        });
-    };
+    (window as any).goToSection = goToSection;
 }
 
 main();

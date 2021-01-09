@@ -96,3 +96,6 @@ data/
 
 # Creedentials
 creedentials.json
+
+# Third-party libraries
+lib/
