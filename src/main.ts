@@ -144,6 +144,8 @@ async function main() {
     (window as any).camera = camera;
     (window as any).planet = planet;
 
+    camera.orbitTo(new CustomEvent("",{detail:12}));
+
     function rotateCamera(e:MouseEvent|TouchEvent) {
         if(scene.global_vars.game_state == "orbit") {
             let v = vec2.create();
