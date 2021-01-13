@@ -61,6 +61,7 @@ export class Logo {
 
 export class GUIContainer {
     public label: Label;
+    public planet: Planet;
     public slideshow: SlideshowGrid;
     public articleWindow: ArticleWindow;
     public exploreButton: InteractuableButton;
@@ -75,12 +76,21 @@ export class GUIContainer {
         this.label = new Label(this.slideshow,options);
         this.articleWindow = new ArticleWindow(this.canvas3d);
         this.exploreButton = new InteractuableButton(this);
+        this.planet = options.planet;
+        document.addEventListener("triangleChanged",this._loadDataAndUpdate)
     }
     public update = (): void => {
         this.label.update();
         this.slideshow.update();
         this.articleWindow.update();
         this.exploreButton.update();
+    }
+
+    private _loadDataAndUpdate = () => {
+        const selectedWork: TriangleEntry|undefined = Works.find((work: TriangleEntry) => {
+            return work.triangle == this.planet.triangles.indexOf(this.planet.selectedTriangle)+1
+        });
+        this.exploreButton.button.disabled = selectedWork==null;
     }
 }
 
@@ -265,6 +275,7 @@ class SlideshowBox {
     public container: HTMLDivElement;
     public content: HTMLDivElement;
     public border: HTMLDivElement;
+    public overlay: HTMLDivElement;
 
     constructor(public grid: SlideshowGrid) {
         this.container = document.createElement("div");
@@ -273,8 +284,10 @@ class SlideshowBox {
         this.content.classList.add("content");
         this.border = document.createElement("div");
         this.border.classList.add("border");
+        this.overlay = document.createElement("div");
+        this.overlay.classList.add("overlay");
 
-        this.container.append(this.content,this.border);
+        this.container.append(this.content,this.overlay,this.border);
     }
 }
 

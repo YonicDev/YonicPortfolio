@@ -174,7 +174,7 @@ body {
         display:inline-block;
         position:relative;
 
-        > .content, > .border {
+        > .content, > .border, .overlay {
             position:absolute;
             top:0;
             left:0;
@@ -198,6 +198,11 @@ body {
             border: #{$BORDER_THICKNESS} solid $WINDOW_BORDER_COLOR;
             opacity: 1;
         }
+
+        .overlay {
+            background-color:rgba($WINDOW_BORDER_COLOR,15%);
+            mix-blend-mode: lighten;
+        }
     }
 
     .box.hidden {
@@ -216,14 +221,13 @@ body {
 
     .box.header {
         grid-column: 1 / 6;
-        > .content {
-            background-color:rgba($WINDOW_BORDER_COLOR,15%);
-            background-blend-mode: overlay;
+        .overlay {
+            mix-blend-mode: overlay;
         }
     }
 
     .box.unavailable {
-        > .content {
+        .overlay {
             background-color:rgba($WINDOW_DISABLED_COLOR,15%);
         }
         > .border {
@@ -318,4 +322,29 @@ button:hover::after {
     background-size:calc(#{$CORNER} - 3px) calc(#{$CORNER} - 3px);
     background-repeat:no-repeat;
     border: 3px solid darken($WINDOW_BORDER_COLOR,25%);
+}
+
+button:disabled {
+    color: darken(white,25%);
+}
+
+button:disabled:hover {
+    width: 8rem;
+}
+
+button:disabled::before,
+button:disabled::after {
+    background-color:darken($WINDOW_DISABLED_COLOR,30%);
+}
+
+button:disabled::after {
+    $GRAD: transparent 49.5%,darken($WINDOW_DISABLED_COLOR,25%) 50%;
+    background: 
+        linear-gradient(to top right   ,#{$GRAD}) top    right,
+        linear-gradient(to top left    ,#{$GRAD}) top    left,
+        linear-gradient(to bottom right,#{$GRAD}) bottom right,
+        linear-gradient(to bottom left ,#{$GRAD}) bottom left;
+    background-size:calc(#{$CORNER} - 3px) calc(#{$CORNER} - 3px);
+    background-repeat:no-repeat;
+    border: 3px solid darken($WINDOW_DISABLED_COLOR,25%);
 }

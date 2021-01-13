@@ -236,10 +236,20 @@ async function main() {
                         gui.slideshow.elements[i].container.classList.add("invisible");
                     }
                     gui.slideshow.spacer.container.classList.remove("hidden");
+                    const selectedWork: TriangleEntry|undefined = works.find((work: TriangleEntry) => {
+                        return work.triangle == planet.triangles.indexOf(planet.selectedTriangle)+1
+                    });
                     gsap.to(gui.slideshow.categoryWindow.content,{
                         opacity: 0,
                         duration: 0.5,
+                        onComplete: function() {
+                            gui.slideshow.categoryWindow.content.style.backgroundImage = `url(${selectedWork?.image})`;
+                        }
                     });
+                    gsap.to(gui.slideshow.categoryWindow.overlay,{
+                        opacity: 1,
+                        duration:0.5,
+                    })
                     gsap.to(gui.slideshow.categoryWindow.container,{
                         position:"absolute",
                         left:  canvas.clientWidth - canvas.clientWidth*gui.slideshow.categoryWindow.SIZE_NUM - 75*2,
@@ -346,8 +356,11 @@ async function main() {
             },
         });
         gsap.to(gui.slideshow.categoryWindow.content,{
-            backgroundColor:"transparent",
             opacity: 1,
+            duration:1,
+        })
+        gsap.to(gui.slideshow.categoryWindow.overlay,{
+            opacity: 0,
             duration:1,
         })
     }
