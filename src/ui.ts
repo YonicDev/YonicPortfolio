@@ -8,6 +8,8 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 export class ArticleWindow {
     public container: HTMLDivElement;
     public htmlContainer: HTMLDivElement;
+    public content: HTMLDivElement;
+    public border: HTMLDivElement;
     public backButton: HTMLButtonElement;
 
     constructor(public canvas3d:HTMLCanvasElement) {
@@ -16,16 +18,23 @@ export class ArticleWindow {
         this.container.style.display = "none";
 
         this.htmlContainer = document.createElement("div");
-        this.htmlContainer.id = "article-window-html-container"
+        this.htmlContainer.id = "article-container"
         this.htmlContainer.style.opacity = "0";
+
+        this.content = document.createElement("div");
+        this.content.id = "article-content";
+
+        this.border = document.createElement("div");
+        this.border.id = "article-window-border";
 
         this.backButton = document.createElement("button");
         this.backButton.innerHTML = "Go back";
         this.backButton.disabled = true;
 
-        this.container.appendChild(this.htmlContainer);
-        this.container.appendChild(this.backButton);
-        document.body.appendChild(this.container);
+        this.htmlContainer.append(this.content);
+        this.container.append(this.htmlContainer,this.border);
+        this.container.append(this.backButton);
+        document.body.append(this.container);
     }
     public update = (): void => {
         this.container.style.top = this.canvas3d.clientHeight*0.5 - this.container.clientHeight*0.5 + "px";

@@ -311,7 +311,7 @@ async function main() {
 
         let md: string = require(`./articles/${work.article}`);
         md = DOMPurify.sanitize(md, {USE_PROFILES:{html: true}});
-        gui.articleWindow.htmlContainer.innerHTML = md;
+        gui.articleWindow.content.innerHTML = md;
         
         for(let i=2;i<gui.slideshow.elements.length;i++) {
             gui.slideshow.elements[i].container.classList.remove("invisible");
