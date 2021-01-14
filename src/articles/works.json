@@ -15,6 +15,9 @@
         "image": "/assets/gui/logo-bg.png",
         "description":"",
         "media": [
+            {"type": "image", "content": "/assets/works/about/test.png", "thumbnail": "/assets/works/about/test.png"},
+            {"type": "image", "content": "/assets/works/about/test.png", "thumbnail": "/assets/works/about/test.png"},
+            {"type": "image", "content": "/assets/works/about/test.png", "thumbnail": "/assets/works/about/test.png"},
             {"type": "image", "content": "/assets/works/about/test.png", "thumbnail": "/assets/works/about/test.png"}
         ],
         "article": "about.md"

@@ -245,6 +245,7 @@ async function main() {
                         opacity: 0,
                         duration: 0.5,
                         onComplete: function() {
+                            gui.slideshow.categoryWindow.destroySlideshow();
                             gui.slideshow.categoryWindow.content.style.backgroundImage = `url(${selectedWork?.image})`;
                         }
                     });
@@ -314,27 +315,12 @@ async function main() {
         let md: string = require(`./articles/${work.article}`);
         md = DOMPurify.sanitize(md, {USE_PROFILES:{html: true}});
         gui.articleWindow.content.innerHTML = md;
+
+        gui.slideshow.categoryWindow.content.style.backgroundImage = "";
+        gui.slideshow.categoryWindow.buildSlideshow(work.media);
+        gui.slideshow.setActiveSlide(0);
         
-        for(let i=2;i<gui.slideshow.elements.length;i++) {
-            gui.slideshow.elements[i].container.classList.remove("invisible");
-        }
-        for(let i=0;i<work.media.length;i++) {
-            let media = work.media[i];
-            if(media.type == "image") {
-                gui.slideshow.elements[i+2].content.style.backgroundImage = `url("${media.thumbnail!=null ? media.thumbnail : media.content}")`;
-                if(i==0) {
-                    gui.slideshow.categoryWindow.content.style.backgroundImage = gui.slideshow.elements[i+2].content.style.backgroundImage;
-                }
-            } else if(media.type == "youtube") {
-                let video = await Youtube.getVideoInfo(media.content);
-                if(video.thumbnails != null && video.thumbnails.medium != null) {
-                    if(i==0 && video.thumbnails.maxres != null) {
-                        gui.slideshow.categoryWindow.content.style.backgroundImage = `url("${video.thumbnails.maxres.url as string}")`;
-                    }
-                    gui.slideshow.elements[i+2].content.style.backgroundImage = `url("${video.thumbnails.medium.url as string}")`;
-                }
-            }
-        }
+        await gui.slideshow.buildSlideshowButtons(work.media);
 
         gui.articleWindow.container.style.display = "";
         gsap.to([gui.articleWindow.htmlContainer.style,gui.articleWindow.backButton.style],{

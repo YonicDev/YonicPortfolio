@@ -1,5 +1,7 @@
 import { vec2, vec3 } from "vmath";
+import { Media } from "./main";
 import Planet, { TriangleEntry } from "./planet";
+import * as Youtube from './integrations/youtube'
 
 const Works = require('./articles/works.json');
 
@@ -300,9 +302,27 @@ class SlideshowBox {
     }
 }
 
+class SlideshowSlide {
+    public type: "image"|"youtube"|"video";
+    public content: string;
+    public thumbnail: string;
+    public element: HTMLDivElement;
+    constructor(media: Media,public index: number) {
+        this.type = media.type;
+        this.content = media.content;
+        this.thumbnail = media.thumbnail!=null? media.thumbnail : media.content;
+
+        this.element = document.createElement("div");
+        this.element.id = "slide-"+index;
+        this.element.classList.add("slideshow-slide");
+        this.element.style.backgroundImage = `url(${this.thumbnail})`;
+    }
+}
+
 class SlideshowCategoryWindow extends SlideshowBox {
     public readonly SIZE_NUM = 0.15;
     public readonly SIZE = this.SIZE_NUM*100 + "vw";
+    public slideshow: SlideshowSlide[];
     constructor(public grid: SlideshowGrid,public planet:Planet) {
         super(grid);
 
@@ -310,6 +330,11 @@ class SlideshowCategoryWindow extends SlideshowBox {
         this.container.style.position = "absolute";
         this.container.style.width = this.SIZE;
         this.container.style.height = `calc(${this.SIZE} * 9/16)`
+
+        this.slideshow = [];
+
+        const debounceScroll = debounce(grid.autoActiveSlide,100);
+        this.content.addEventListener('scroll',debounceScroll);
 
         document.addEventListener("triangleChanged",this._updateWindow);
         this._updateWindow();
@@ -319,6 +344,19 @@ class SlideshowCategoryWindow extends SlideshowBox {
             this.container.style.left = this.grid.canvas3d.clientWidth -this.container.clientWidth - 75*2 + "px";
             this.container.style.top = this.grid.canvas3d.clientHeight*0.5 -this.container.clientHeight*0.5 - this.grid.container.offsetTop + "px";
         }
+    }
+    public buildSlideshow(media: Media[]) {
+        this.destroySlideshow();
+        for(let m of media) {
+            let index = media.indexOf(m);
+            let slide = new SlideshowSlide(m,index);
+            this.content.append(slide.element);
+            this.slideshow.push(slide);
+        }
+    }
+    public destroySlideshow() {
+        this.slideshow = [];
+        this.content.innerHTML = "";
     }
     private _updateWindow = (e?: Event) => {
         let selectedWork: TriangleEntry|undefined = Works.find((work: TriangleEntry) => {
@@ -344,6 +382,7 @@ class SlideshowGrid {
     public container: HTMLDivElement;
     public spacer: SlideshowBox;
     public categoryWindow: SlideshowCategoryWindow;
+    public activeSlide: number;
 
     constructor(public canvas3d:HTMLCanvasElement,planet: Planet) {
         this.container = document.createElement("div");
@@ -354,6 +393,7 @@ class SlideshowGrid {
         this.elements[0] = this.categoryWindow = new SlideshowCategoryWindow(this,planet);
         this.elements[1] = this.spacer = new SlideshowBox(this);
         this.spacer.container.classList.add("header","invisible");
+        this.activeSlide = 0;
 
         for(let i=2;i<=11;i++) {
             this.elements[i] = new SlideshowBox(this);
@@ -369,4 +409,58 @@ class SlideshowGrid {
         this.container.style.top = this.canvas3d.clientHeight*0.5 - this.container.clientHeight*0.5 + "px";
         this.categoryWindow.update();
     }
+    public setActiveSlide(value: number) {
+        this.activeSlide = value;
+        for(let i=2;i<this.elements.length;i++) {
+            if(i == value+2) {
+                this.elements[i].container.classList.add("active");
+            } else {
+                this.elements[i].container.classList.remove("active");
+            }
+        }
+    }
+    public autoActiveSlide = (ev:Event) => {
+        const scroller = ev.target as HTMLDivElement;
+        const index = Math.round((scroller.scrollLeft / scroller.scrollWidth) * this.categoryWindow.slideshow.length );
+        if(index != this.activeSlide) {
+            this.setActiveSlide(index);
+        }
+    }
+    public async buildSlideshowButtons(mediaArray: Media[]) {
+        for(let i=2;i<this.elements.length;i++) {
+            this.elements[i].container.classList.remove("invisible");
+            this.elements[i].container.classList.add("unavailable");
+            this.elements[i].content.style.backgroundImage = "";
+            this.elements[i].container.onclick = null;
+        }
+        for(let i=0;i<mediaArray.length;i++) {
+            let media = mediaArray[i];
+            this.elements[i+2].container.classList.remove("unavailable");
+            this.elements[i+2].container.onclick = () => {
+                document.querySelector("#slide-"+i)?.scrollIntoView();
+                this.setActiveSlide(i);
+            }
+            if(media.type == "image") {
+                this.elements[i+2].content.style.backgroundImage = `url("${media.thumbnail!=null ? media.thumbnail : media.content}")`;
+            } else if(media.type == "youtube") {
+                let video = await Youtube.getVideoInfo(media.content);
+                if(video.thumbnails != null && video.thumbnails.medium != null) {
+                    if(i==0 && video.thumbnails.maxres != null) {
+                        this.categoryWindow.content.style.backgroundImage = `url("${video.thumbnails.maxres.url as string}")`;
+                    }
+                    this.elements[i+2].content.style.backgroundImage = `url("${video.thumbnails.medium.url as string}")`;
+                }
+            }
+        }
+    }
 }
+
+function debounce(func: (...args: any[]) => any, timeout: number) {
+    let timer: NodeJS.Timeout
+    return (...args: any[]) => {
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        func(...args)
+      }, timeout)
+    }
+  }
