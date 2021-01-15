@@ -2,6 +2,7 @@ import { vec2, vec3 } from "vmath";
 import { Media } from "./main";
 import Planet, { TriangleEntry } from "./planet";
 import * as Youtube from './integrations/youtube'
+import gsap from "gsap";
 
 const Works = require('./articles/works.json');
 
@@ -76,6 +77,7 @@ export class GUIContainer {
     public slideshow: SlideshowGrid;
     public articleWindow: ArticleWindow;
     public exploreButton: InteractuableButton;
+    public mediaWindow: MediaWindow;
 
     constructor(public canvas3d: HTMLCanvasElement,options:{
         tailLength: number,
@@ -83,10 +85,11 @@ export class GUIContainer {
         textMargin: vec2,
         fontSize: number,
     }) {
-        this.slideshow = new SlideshowGrid(this.canvas3d,options.planet);
+        this.slideshow = new SlideshowGrid(this.canvas3d,this,options.planet);
         this.label = new Label(this.slideshow,options);
         this.articleWindow = new ArticleWindow(this.canvas3d);
         this.exploreButton = new InteractuableButton(this);
+        this.mediaWindow = new MediaWindow(this);
         this.planet = options.planet;
         document.addEventListener("triangleChanged",this._loadDataAndUpdate)
     }
@@ -287,6 +290,7 @@ class SlideshowBox {
     public content: HTMLDivElement;
     public border: HTMLDivElement;
     public overlay: HTMLDivElement;
+    public videoButton: HTMLDivElement;
 
     constructor(public grid: SlideshowGrid) {
         this.container = document.createElement("div");
@@ -297,25 +301,37 @@ class SlideshowBox {
         this.border.classList.add("border");
         this.overlay = document.createElement("div");
         this.overlay.classList.add("overlay");
+        this.videoButton = document.createElement("div");
+        this.videoButton.classList.add("video-button");
 
+        this.content.append(this.videoButton);
         this.container.append(this.content,this.overlay,this.border);
     }
 }
 
 class SlideshowSlide {
     public type: "image"|"youtube"|"video";
-    public content: string;
-    public thumbnail: string;
+    public content: string[];
     public element: HTMLDivElement;
-    constructor(media: Media,public index: number) {
+    public videoButton: HTMLDivElement;
+    constructor(public gui:GUIContainer,media: Media,public index: number,thumbnail: string) {
         this.type = media.type;
         this.content = media.content;
-        this.thumbnail = media.thumbnail!=null? media.thumbnail : media.content;
 
         this.element = document.createElement("div");
         this.element.id = "slide-"+index;
         this.element.classList.add("slideshow-slide");
-        this.element.style.backgroundImage = `url(${this.thumbnail})`;
+        this.element.style.backgroundImage = `url(${thumbnail})`;
+
+        this.videoButton = document.createElement("div");
+        this.videoButton.classList.add("video-button");
+
+        this.element.onclick = () => {
+            this.gui.mediaWindow.displayMedia(media);
+        }
+        if(media.type=="video" || media.type=="youtube") {
+            this.element.append(this.videoButton);
+        }
     }
 }
 
@@ -349,7 +365,13 @@ class SlideshowCategoryWindow extends SlideshowBox {
         this.destroySlideshow();
         for(let m of media) {
             let index = media.indexOf(m);
-            let slide = new SlideshowSlide(m,index);
+            let thumbnail = "";
+            if(m.type == "youtube") {
+                thumbnail = m.thumbnail!=null? m.thumbnail : `https://i.ytimg.com/vi/${m.content[0]}/maxresdefault.jpg`;
+            } else {
+                thumbnail = m.thumbnail!=null? m.thumbnail : m.content[0];
+            }
+            let slide = new SlideshowSlide(this.grid.gui,m,index,thumbnail);
             this.content.append(slide.element);
             this.slideshow.push(slide);
         }
@@ -384,7 +406,7 @@ class SlideshowGrid {
     public categoryWindow: SlideshowCategoryWindow;
     public activeSlide: number;
 
-    constructor(public canvas3d:HTMLCanvasElement,planet: Planet) {
+    constructor(public canvas3d:HTMLCanvasElement,public gui:GUIContainer,planet: Planet) {
         this.container = document.createElement("div");
         this.container.id = "slideshow-grid";
         this.container.style.left = "75px";
@@ -431,6 +453,7 @@ class SlideshowGrid {
             this.elements[i].container.classList.remove("invisible");
             this.elements[i].container.classList.add("unavailable");
             this.elements[i].content.style.backgroundImage = "";
+            this.elements[i].videoButton.style.display = "none";
             this.elements[i].container.onclick = null;
         }
         for(let i=0;i<mediaArray.length;i++) {
@@ -442,15 +465,17 @@ class SlideshowGrid {
             }
             if(media.type == "image") {
                 this.elements[i+2].content.style.backgroundImage = `url("${media.thumbnail!=null ? media.thumbnail : media.content}")`;
-            } else if(media.type == "youtube") {
-                let video = await Youtube.getVideoInfo(media.content);
-                if(video.thumbnails != null && video.thumbnails.medium != null) {
-                    if(i==0 && video.thumbnails.maxres != null) {
-                        this.categoryWindow.content.style.backgroundImage = `url("${video.thumbnails.maxres.url as string}")`;
+            } else {
+                this.elements[i+2].videoButton.style.display = "block";
+                if(media.type == "youtube") {
+                    let video = await Youtube.getVideoInfo(media.content[0]);
+                    if(video.thumbnails != null && video.thumbnails.medium != null) {
+                        this.elements[i+2].content.style.backgroundImage = `url("${video.thumbnails.medium.url as string}")`;
                     }
-                    this.elements[i+2].content.style.backgroundImage = `url("${video.thumbnails.medium.url as string}")`;
+                } else {
+                    this.elements[i+2].content.style.backgroundImage = `url("${media.thumbnail as string}")`;
                 }
-            }
+            } 
         }
     }
 }
@@ -464,3 +489,180 @@ function debounce(func: (...args: any[]) => any, timeout: number) {
       }, timeout)
     }
   }
+
+export class MediaWindow {
+    public videoContainer: HTMLDivElement;
+    public imageContainer: HTMLDivElement;
+    public container: HTMLDivElement;
+
+    public closeButton: HTMLElement;
+
+    public videoElement: HTMLVideoElement;
+    public youtubeElement: HTMLElement;
+    public imageElement: HTMLImageElement;
+
+    public player: YT.Player;
+
+    constructor(public gui: GUIContainer) {
+        this.videoContainer = document.createElement("div");
+        this.videoContainer.id = "video-window";
+
+        this.videoElement = document.createElement("video");
+        this.videoElement.id = "video-element";
+        this.videoElement.setAttribute("controls","");
+
+        this.youtubeElement = document.createElement("div");
+        this.youtubeElement.id = "video-youtubeElement";
+
+        this.container = document.createElement("div");
+        this.container.id = "media-container";
+
+        this.imageContainer = document.createElement("div");
+        this.imageContainer.id = "image-window";
+
+        this.imageElement = document.createElement("img");
+        this.imageElement.id = "media-image";
+
+        this.closeButton = document.createElement("div");
+        this.closeButton.id = "video-close-button";
+        this.closeButton.innerHTML = "<p>&#x2716;</p>";
+
+        this.videoContainer.append(this.youtubeElement);
+        this.imageContainer.append(this.imageElement);
+        this.container.append(this.videoContainer,this.imageContainer,this.videoElement,this.closeButton);
+        document.body.append(this.container);
+
+        this.player = new YT.Player(this.youtubeElement,{
+            videoId:'',
+            width:this.videoContainer.clientWidth,
+            height:this.videoContainer.clientHeight,
+            playerVars: {
+                autoplay: 1,
+                modestbranding: 1,
+                enablejsapi: 1,
+                hl: 'en-US',
+                rel: 0
+            }
+        })
+        window.addEventListener("resize",(e: Event) => {
+            this._resizeYoutubePlayer();
+        });
+
+        this.youtubeElement = this.player.getIframe();
+        this.videoType = "unknown";
+    }
+    private _resizeYoutubePlayer() {
+        this.player.setSize(this.videoContainer.clientWidth,this.videoContainer.clientHeight);
+    }
+    public set videoType(value: "video"|"youtube"|"unknown") {
+        if(value === "youtube") {
+            this.videoContainer.style.display = "block";
+            this.youtubeElement.style.display = "block";
+            this.videoElement.style.display = "none";
+        } else if (value === "video") {
+            this.videoContainer.style.display = "none";
+            this.youtubeElement.style.display = "none";
+            this.videoElement.style.display = "block";
+        } else {
+            this.videoContainer.style.display = "none";
+            this.youtubeElement.style.display = "none";
+            this.videoElement.style.display = "none";
+        }
+    }
+    public get videoType(): "video"|"youtube"|"unknown" {
+        if(this.videoElement.style.display === "block") {
+            return "video";
+        } else if (this.youtubeElement.style.display === "block") {
+            return "youtube";
+        } else {
+            return "unknown";
+        }
+    }
+    public displayMedia(media: Media) {
+        if(media.type == "youtube") {
+            this.videoType = "youtube";
+            this.imageContainer.style.display = "none";
+            this.container.style.display = "block";
+            this._resizeYoutubePlayer();
+            gsap.to(this.gui.mediaWindow.container,{
+                scale: 1,
+                opacity: 1,
+                duration: 0.5,
+                ease: "quad.easeOut",
+                onComplete: () => {
+                    this.player.loadVideoById(media.content[0]);
+                    this.closeButton.onclick = () => {
+                        this.player.pauseVideo();
+                        gsap.to(this.container, {
+                            scale: 2,
+                            opacity: 0,
+                            duration: 0.5,
+                            ease: "quad.easeOut",
+                            onComplete: () => {
+                                this.container.style.display = "none";
+                            }
+                        })
+                    }
+                }
+            })
+        } else if(media.type == "video") {
+            this.videoType = "video";
+            this.imageContainer.style.display = "none";
+            this.container.style.display = "block";
+            this.videoElement.innerHTML = "";
+            for(let source of media.content) {
+                let node = document.createElement("source");
+                node.src = source;
+                this.videoElement.append(node);
+            }
+            gsap.to(this.container,{
+                scale: 1,
+                opacity: 1,
+                duration: 0.5,
+                ease: "quad.easeOut",
+                onComplete: () => {
+                    this.videoElement.play();
+                    this.closeButton.onclick = () => {
+                        this.videoElement.pause();
+                        this.videoElement.currentTime = 0;
+                        gsap.to(this.container, {
+                            scale: 2,
+                            opacity: 0,
+                            duration: 0.5,
+                            ease: "quad.easeOut",
+                            onComplete: () => {
+                                this.container.style.display = "none";
+                            }
+                        })
+                    }
+                }
+            });
+        } else {
+            this.videoType = "unknown";
+            this.imageContainer.style.display = "block";
+            this.container.style.display = "block";
+            gsap.to(this.container,{
+                scale: 1,
+                opacity: 1,
+                duration: 0.5,
+                ease: "quad.easeOut",
+                onComplete: () => {
+                    this.closeButton.onclick = () => {
+                        this.player.pauseVideo();
+                        gsap.to(this.container, {
+                            scale: 2,
+                            opacity: 0,
+                            duration: 0.5,
+                            ease: "quad.easeOut",
+                            onComplete: () => {
+                                this.container.style.display = "none";
+                            }
+                        })
+                    }
+                }
+            })
+            this.imageElement.src = media.content[0];
+            this.imageContainer.scrollTop = this.imageContainer.scrollLeft = 0;
+        }
+    }
+}

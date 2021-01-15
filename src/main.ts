@@ -39,7 +39,14 @@ async function main() {
     (window as any).$vmath = require('vmath');
 
     // YouTube integration
-    gapi.load('client',Youtube.init)
+    gapi.load('client',Youtube.init);
+
+    try {
+        console.log(await Youtube.loadIframeAPI());
+    } catch {
+        window.location.reload();
+    }
+    
 
     // Document styling
     document.body.style.overflow = "hidden";
@@ -207,6 +214,12 @@ async function main() {
         };
 
         scene.post_draw_callbacks.push(bg.update, gui.update);
+
+        gsap.set(gui.mediaWindow.container,{
+            opacity:0,
+            display:"none",
+            scale:2
+        });
 
         gui.articleWindow.backButton.onclick = (window as any).returnToOrbit = function () {
             scene.global_vars.game_state = "zoomOut";
@@ -431,7 +444,7 @@ main();
 
 export interface Media {
     type: "image"|"youtube"|"video",
-    content: string,
+    content: string[],
     thumbnail?: string
 }
 

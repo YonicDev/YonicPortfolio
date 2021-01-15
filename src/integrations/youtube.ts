@@ -10,3 +10,20 @@ export async function getVideoInfo(id: string,part="snippet") {
     let res = await gapi.client.youtube.videos.list({part,id});
     return JSON.parse(res.body).items[0].snippet as gapi.client.youtube.VideoSnippet;
 }
+
+export async function getVideoPlayer(id: string, maxWidth: number, maxHeight: number) {
+    let res = await gapi.client.youtube.videos.list({part:"player",id,maxWidth});
+    return JSON.parse(res.body).items[0].player.embedHtml as string;
+}
+
+export function loadIframeAPI() {
+    return new Promise<string>((resolve,reject) => {
+        let timeout = setTimeout(function() {
+            reject("Timeout on loading YouTube Iframe API.");
+        },5000);
+        (window as any).onYouTubeIframeAPIReady = function () {
+            clearTimeout(timeout);
+            resolve("YouTube Iframe API loaded");
+        }
+    },)
+}
