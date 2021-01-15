@@ -227,7 +227,7 @@ async function main() {
             gui.articleWindow.backButton.disabled = true;
     
             bg.showWaves();
-            gsap.to([gui.articleWindow.htmlContainer.style,gui.articleWindow.backButton.style],{
+            gsap.to(gui.articleWindow.container,{
                 duration: 1,
                 opacity: 0,
                 ease: "power2.out",
@@ -336,7 +336,8 @@ async function main() {
         await gui.slideshow.buildSlideshowButtons(work.media);
 
         gui.articleWindow.container.style.display = "";
-        gsap.to([gui.articleWindow.htmlContainer.style,gui.articleWindow.backButton.style],{
+        gui.articleWindow.htmlContainer.scrollTop = 0;
+        gsap.to(gui.articleWindow.container.style,{
             duration: 1,
             opacity: 1,
             ease: "power2.out",

@@ -22,7 +22,6 @@ export class ArticleWindow {
 
         this.htmlContainer = document.createElement("div");
         this.htmlContainer.id = "article-container"
-        this.htmlContainer.style.opacity = "0";
 
         this.content = document.createElement("div");
         this.content.id = "article-content";
