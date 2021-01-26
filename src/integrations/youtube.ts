@@ -20,7 +20,13 @@ export function loadIframeAPI() {
     return new Promise<string>((resolve,reject) => {
         let timeout = setTimeout(function() {
             reject("Timeout on loading YouTube Iframe API.");
-        },5000);
+        },30000);
+        let script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.async = true;
+        script.src = "https://www.youtube.com/iframe_api";
+        script.onerror = (ev) => reject(ev);
+        document.head.appendChild(script);
         (window as any).onYouTubeIframeAPIReady = function () {
             clearTimeout(timeout);
             resolve("YouTube Iframe API loaded");
