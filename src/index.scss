@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,700;1,400;1,700&family=Raleway:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Russo+One&display=swap');
+
 $WINDOW_BORDER_COLOR: cyan;
 $WINDOW_DISABLED_COLOR: gray;
 
@@ -10,8 +12,13 @@ $BACKGROUND_COLOR: #05160f;
 $CORNER: 10px;
 $BORDER_THICKNESS: 3px;
 
+$FONT_BUTTONS: 'Raleway','Franklin Gothic Medium', 'Arial Narrow', Arial, Helvetica, sans-serif;
+$FONT_PARAGRAPHS: 'Nunito', 'Franklin Gothic Medium', 'Arial Narrow', Arial, Helvetica, sans-serif;
+$FONT_HEADINGS: 'Russo One', 'Franklin Gothic Black', 'Arial Black', Arial, Helvetica, sans-serif;
+
 body {
     overflow: hidden;
+    font-family: $FONT_PARAGRAPHS;
 }
 
 #article-window {
@@ -19,6 +26,7 @@ body {
     left: 50vw;
     width: calc(50vw - 64px);
     height: 60vh;
+    opacity: 0;
     > #article-container {
         color: $WINDOW_BORDER_COLOR;
         width: 100%;
@@ -35,6 +43,20 @@ body {
             background: transparent;
             color: white;
             text-shadow: 0 0 2px rgba(white,40%);
+        }
+
+        h2,h3,h4 {
+            font-weight: bold;
+        }
+
+        h1 {
+            font-family: $FONT_HEADINGS;
+            font-weight: 400;
+            font-size: 2rem;
+            padding: 0.5rem 0;
+            border: solid $WINDOW_BORDER_COLOR;
+            border-width: 2px 0 2px 0;
+            text-align: center;
         }
     }
 
@@ -78,15 +100,15 @@ body {
     }
 
     > button {
-        font-size: 18pt;
+        font-size: 14pt;
         margin-top: 0.5rem;
-        padding: 0.25rem 1rem;
     }
     > button:hover {
         width: 100%;
     }
     > button::after {
         content:"Go back";
+        line-height: calc(100% + 6pt);
     }
 }
 
@@ -340,17 +362,21 @@ body {
     }
     > text {
         font-size: 24px;
-        font-family: sans-serif;
+        font-family: $FONT_BUTTONS;
+        font-variation-settings: 'wght' 350;
     }
 }
 
 button {
     color: $WINDOW_BORDER_COLOR;
+    font-family: $FONT_BUTTONS;
+    font-weight: 500;
+    font-variation-settings: 'wght' 500;
     font-size: 16pt;
     padding: 0.25rem 1rem;
     width: 8rem;
     height: 35px;
-    transition-property: background-color, background-image, border, color, width;
+    transition-property: background-color, background-image, border, color, width, font-variation-settings;
     transition-duration: 0.333s;
     transition-timing-function: ease-out;
     transition-delay: 0;
@@ -381,12 +407,14 @@ button::after {
     background-size:calc(#{$CORNER} - #{$BORDER_THICKNESS}) calc(#{$CORNER} - #{$BORDER_THICKNESS});
     background-repeat:no-repeat;
     border: #{$BORDER_THICKNESS} solid $WINDOW_BORDER_COLOR;
-    content: "Explore"
+    content: "Explore";
 }
 
 button:hover {
     color: darken($WINDOW_BORDER_COLOR,25%);
     width: calc(15vw - 20px - 1rem);
+    font-weight: 600;
+    font-variation-settings: 'wght' 600;
 }
 
 button:hover::before,
@@ -504,4 +532,12 @@ button:focus {
         background-color: black;
     }
     
+}
+
+#explore-button {
+    margin-top: 35px;
+    height:45px;
+}
+#explore-button::after {
+    padding:6px 0;
 }
