@@ -87,11 +87,20 @@ export default class Planet {
 export class Triangle extends Behaviour {
     public index: number;
     public planet: Planet;
+    public textureOpacity: number;
+
+    public readonly MAX_TEXTURE_OPACITY = 1;
+
     constructor(public ob: any,options: any) {
         super(ob.scene,options);
         this.index = options.index;
         this.planet = options.planet;
-        this.enable_object_picking();
+        this.textureOpacity = this.MAX_TEXTURE_OPACITY;
+        //this.enable_object_picking();
+
+        this.ob.materials[0]._texture_list[0].value.use_mipmap = false;
+        this.ob.materials[0]._texture_list[0].value.update();
+
         for(let work of work_data) {
             if(work.triangle == this.index) {
                 vec3.set(this.ob.materials[0].inputs.has_content.value,10,0,0);
@@ -99,6 +108,12 @@ export class Triangle extends Behaviour {
             }
         }
     }
+    public on_tick = (fd: number) => {
+        if(this.ob.materials[0].inputs.texture_opacity!=null) {
+            vec3.set(this.ob.materials[0].inputs.texture_opacity.value,this.textureOpacity,0,0);
+        }
+    }
+
     public on_object_pointer_down = (e:any): void => {
         if(e.object != this.ob) { return; }
         document.dispatchEvent(new CustomEvent("TrianglePicked",{detail:this.index}))

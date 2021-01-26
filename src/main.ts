@@ -297,6 +297,12 @@ async function main() {
                 ease:"power2.inOut",
                 delay: 1
             })
+            gsap.to(planet.selectedTriangle, {
+                textureOpacity: planet.selectedTriangle.MAX_TEXTURE_OPACITY,
+                ease: "power2.inOut",
+                delay: 1.5,
+                duration: 3.5
+            })
             gsap.to(gui.label.line,{
                 drawSVG:"100%",
                 duration: 1,
@@ -436,6 +442,13 @@ async function main() {
             ease:"power2.inOut",
             delay: 1
         });
+
+        gsap.to(planet.selectedTriangle, {
+            textureOpacity: 0,
+            ease: "power2.inOut",
+            delay: 1,
+            duration: 1.5
+        })
     };
 
     (window as any).goToSection = goToSection;
