@@ -313,6 +313,7 @@ class SlideshowSlide {
     public content: string[];
     public element: HTMLDivElement;
     public videoButton: HTMLDivElement;
+    public imageButton: HTMLDivElement;
     constructor(public gui:GUIContainer,media: Media,public index: number,thumbnail: string) {
         this.type = media.type;
         this.content = media.content;
@@ -320,17 +321,19 @@ class SlideshowSlide {
         this.element = document.createElement("div");
         this.element.id = "slide-"+index;
         this.element.classList.add("slideshow-slide");
+        if(media.type=="image") this.element.classList.add("image-slide");
         this.element.style.backgroundImage = `url(${thumbnail})`;
 
         this.videoButton = document.createElement("div");
         this.videoButton.classList.add("video-button");
 
+        this.imageButton = document.createElement("div");
+        this.imageButton.classList.add("image-button");
+
         this.element.onclick = () => {
             this.gui.mediaWindow.displayMedia(media);
         }
-        if(media.type=="video" || media.type=="youtube") {
-            this.element.append(this.videoButton);
-        }
+        this.element.append(media.type=="video" || media.type=="youtube"? this.videoButton : this.imageButton);
     }
 }
 

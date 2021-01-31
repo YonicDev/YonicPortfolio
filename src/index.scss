@@ -119,6 +119,13 @@ body {
             background-color: rgba(0, 37, 51, 33%);
         }
     }
+    .slideshow-slide {
+        transition: backdrop-filter ease-out 0.25s;
+        > .image-button {
+            backdrop-filter: blur(5px);
+            background-color: rgba(black,50%)!important;
+        }
+    }
 }
 
 #logo {
@@ -270,15 +277,6 @@ body {
             pointer-events: none;
         }
 
-        .video-button {
-            background-image: url('/assets/gui/video-icon.svg');
-            width:100%;
-            height:100%;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: 5vh;
-            display: none;
-        }
     }
 
     .box.hidden {
@@ -313,12 +311,34 @@ body {
                 background-position: center;
                 background-size: cover;
                 scroll-snap-align: center;
+
+                > .video-button, > .image-button {
+                    width:100%;
+                    height:100%;
+                    background-position: center;
+                    background-repeat: no-repeat;
+                    background-size: 15vh;
+                }
+
+                > .video-button {
+                    background-image: url('/assets/gui/video-icon.svg');
+                }
+
+                > .image-button {
+                    background-color: rgba(black,75%);
+                    background-image: url('/assets/gui/zoom-icon.svg');
+                    background-size: 30vh;
+                    transition: all ease-out 0.25s;
+                    opacity: 0;
+                }
+                
             }
-            > div > .video-button {
-                display: block;
-                position: absolute;
+            
+            > .slideshow-slide:hover > .image-button {
+                opacity: 1;
                 background-size: 15vh;
             }
+
         }
         > .content::-webkit-scrollbar {
             display: none;
