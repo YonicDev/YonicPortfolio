@@ -73,15 +73,12 @@ var config = {
         ]
     },
     plugins: [
-        /*
         new webpack.BannerPlugin({
             banner: [
-                'Your Application',
-                '(c) 20xx Your name or company. All rights reserved.',
+                '(c) 2020 Mario Martínez Palacio. All rights reserved.',
             ].join('\n'),
             raw: false,
         }),
-        */
         new webpack.DefinePlugin({global_myou_engine_webpack_flags: JSON.stringify(myou_engine_flags)}),
         new HtmlWebpackPlugin({
             filename: "index.html",
@@ -101,7 +98,8 @@ var config = {
     mode: 'development',
     devServer: {
         contentBase: path.resolve(__dirname, 'build'),
-        port: 8080
+        port: 8080,
+        disableHostCheck: true
     }
 }
 

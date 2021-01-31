@@ -6,7 +6,11 @@
         "description":"",
         "media": [
             {"type": "youtube", "content": ["MLDq8nrS4dY"]},
-            {"type": "video", "content": ["https://ia800201.us.archive.org/12/items/BigBuckBunny_328/BigBuckBunny_512kb.mp4"], "thumbnail": "https://i.ytimg.com/vi/yUQM7H4Swgw/maxresdefault.jpg"}
+            {"type": "image", "content": ["/assets/works/prime-vr/comparison.jpg"]},
+            {"type": "image", "content": ["/assets/works/prime-vr/phendrana.jpg"]},
+            {"type": "image", "content": ["/assets/works/prime-vr/peequeen.jpg"]},
+            {"type": "image", "content": ["/assets/works/prime-vr/rollout.jpg"]},
+            {"type": "image", "content": ["/assets/works/prime-vr/event.jpg"]}
         ],
         "article": "prime-vr.md"
     },
@@ -16,10 +20,6 @@
         "image": "/assets/gui/logo-bg.png",
         "description":"",
         "media": [
-            {"type": "image", "content": ["/assets/works/about/test.png"], "thumbnail": "/assets/works/about/test.png"},
-            {"type": "image", "content": ["/assets/works/about/test.png"], "thumbnail": "/assets/works/about/test.png"},
-            {"type": "image", "content": ["/assets/works/about/test.png"], "thumbnail": "/assets/works/about/test.png"},
-            {"type": "image", "content": ["/assets/works/about/test.png"], "thumbnail": "/assets/works/about/test.png"}
         ],
         "article": "about.md"
     }
