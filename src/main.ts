@@ -151,7 +151,7 @@ async function main() {
     (window as any).camera = camera;
     (window as any).planet = planet;
 
-    camera.orbitTo(new CustomEvent("",{detail:12}));
+    camera.orbitTo(new CustomEvent("",{detail:13}));
 
     function rotateCamera(e:MouseEvent|TouchEvent) {
         if(scene.global_vars.game_state == "orbit") {
@@ -277,6 +277,7 @@ async function main() {
                         onComplete: function() {
                             gui.slideshow.categoryWindow.container.style.width = gui.slideshow.categoryWindow.SIZE;
                             gui.slideshow.categoryWindow.container.style.height = `calc(${gui.slideshow.categoryWindow.SIZE} * 9/16)`;
+                            gui.slideshow.container.style.pointerEvents = ""
                             gui.exploreButton.button.disabled = false;
                             scene.global_vars.game_state = "orbit";
                         }
@@ -340,6 +341,7 @@ async function main() {
         gui.slideshow.setActiveSlide(0);
         
         await gui.slideshow.buildSlideshowButtons(work.media);
+        gui.slideshow.container.style.pointerEvents = "auto"
 
         gui.articleWindow.container.style.display = "";
         gui.articleWindow.htmlContainer.scrollTop = 0;
