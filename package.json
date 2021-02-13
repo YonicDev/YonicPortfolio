@@ -30,7 +30,7 @@
     "dompurify": "^2.2.6",
     "fs-extra": "^9.0.1",
     "gsap": "^3.6.0",
-    "myou-engine": "git+https://github.com/myou-engine/myou-engine.git",
+    "myou-engine": "file:../myou-engine",
     "vmath": "^1.4.8"
   },
   "devDependencies": {

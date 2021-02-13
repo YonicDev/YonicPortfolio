@@ -1,13 +1,12 @@
 import "./index.scss";
 
-import { Myou, create_full_window_canvas } from "myou-engine"
+import { Myou, create_full_window_canvas, vmath } from "myou-engine"
+const { vec2 } = vmath;
 import gsap from "gsap"
 const {DrawSVGPlugin} = require("../lib/DrawSVGPlugin3.min.js");
 gsap.registerPlugin(DrawSVGPlugin);
 
 import DOMPurify from "dompurify";
-
-import { vec2 } from "vmath"
 
 import Camera from "./camera"
 import Planet, { TriangleEntry } from "./planet"
@@ -79,7 +78,7 @@ async function main() {
     }
 
     // Load the scene called "Scene", its objects and enable it
-    let scene: any = await myou.load_scene('Scene');
+    let scene: Myou.Scene = await myou.load_scene('Scene');
     // At this point, the scene has loaded but not the meshes, textures, etc.
 
     function portfolioLogoAnimation(): Promise<void> {

@@ -1,18 +1,20 @@
+import { Myou } from "myou-engine";
+
 import Planet, { PlanetCardinal } from "./planet";
 import Camera from "./camera";
 
 interface ButtonAxes {
-    up: any;
-    right: any;
-    left: any;
-    down: any;
+    up: Myou.Button;
+    right: Myou.Button;
+    left: Myou.Button;
+    down: Myou.Button;
 }
 
 export class Control {
     public wasd: ButtonAxes;
     public arrows: ButtonAxes;
-    constructor(public myou:any,public camera: Camera) {
-        const Button:any = this.myou.Button;
+    constructor(public myou: Myou,public camera: Camera) {
+        const Button = this.myou.Button;
         this.wasd = {
             up: new Button('Key:KeyW'),
             right: new Button('Key:KeyD'),

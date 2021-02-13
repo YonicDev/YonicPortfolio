@@ -1,19 +1,21 @@
 import { vec2, vec3, quat } from "vmath";
 import gsap from "gsap";
+import { Myou } from "myou-engine";
 
 import { Control } from "./control";
 import { GameState } from "./main";
 import Planet, { Triangle, PlanetCardinal } from "./planet";
 
+
 export default class Camera {
-    public camera_parent: any;
+    public camera_parent: Myou.GameObject;
     public initial_position: vec3;
     public initial_rotation: vec3;
     public rotation_origin: vec2;
     public control: Control;
     constructor(
-        public camera_object: any,
-        myou: any,
+        public camera_object: Myou.Camera,
+        myou: Myou,
         public planet: Planet,
         public mouse_rotation_multiplier = 1.5,
         public angle_limit = 60
@@ -23,7 +25,7 @@ export default class Camera {
         this.initial_rotation = vec3.clone(this.camera_parent.rotation as vec3);
         this.rotation_origin = vec2.create();
         this.control = new Control(myou,this);
-        let callbacks:Function[] = this.camera_object.scene.post_animation_callbacks || this.camera_object.scene.pre_draw_callbacks;
+        let callbacks:Function[] = this.camera_object.scene.pre_draw_callbacks;
 
         Object.defineProperty(this.camera_object, 'world_position_x',{
             get: function(): number { return this.get_world_position().x},
@@ -53,7 +55,7 @@ export default class Camera {
         // WARNING: This must be the last tick,
         // so make sure others are added before or with unshift
         // NOTE: This is pending an API change in the engine
-        callbacks.push((scene: any,frame_duration: number) => {
+        callbacks.push((scene: Myou.Scene,frame_duration: number) => {
             this.tick(frame_duration)
         });
 
@@ -96,13 +98,13 @@ export default class Camera {
             gsap.to(influence,{
                 x: 1,
                 duration:0.5,
-                onUpdate: function(camera_parent: any, planet: Planet) {
+                onUpdate: function(camera_parent: Myou.GameObject) {
                     quat.copy(camera_parent.rotation,initialRotation);
                     camera_parent.look_at(targetPoint,{front:"+X",influence:influence.x})
                     camera_parent.set_rotation_order('XYZ'); // Myou converts it into quat, so we turn it back to how it was.
                 },
-                onUpdateParams: [this.camera_parent, this.planet],
-                onComplete: function(camera_parent: any, camera: Camera) {
+                onUpdateParams: [this.camera_parent],
+                onComplete: function(camera_parent: Myou.GameObject, camera: Camera) {
                     camera_parent.scene.global_vars.game_state = "orbit";
                     camera.initial_rotation = vec3.clone(camera_parent.rotation as vec3); 
                 },
