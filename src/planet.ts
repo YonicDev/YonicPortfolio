@@ -96,7 +96,7 @@ export class Triangle extends Behaviour {
         this.index = options.index;
         this.planet = options.planet;
         this.textureOpacity = this.MAX_TEXTURE_OPACITY;
-        //this.enable_object_picking();
+        this.enable_object_picking();
 
         this.ob.materials[0]._texture_list[0].value.use_mipmap = false;
         this.ob.materials[0]._texture_list[0].value.update();

@@ -77,7 +77,7 @@ export default class Camera {
             if(typeof e.detail === "string") {
                 targetIndex = this.planet.triangleMap[this.planet.triangles.indexOf(this.planet.selectedTriangle)][e.detail]-1;
             } else if(typeof e.detail === "number") {
-                targetIndex = e.detail;
+                targetIndex = e.detail-1;
             } else { return; }
             if(targetIndex < 0) { return; }
 
