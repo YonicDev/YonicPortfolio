@@ -201,6 +201,11 @@ async function main() {
     }
 
     function initializeGUI(planet: Planet) {
+        let versionLabel = document.createElement("p");
+        versionLabel.id = "version-label";
+        versionLabel.innerText = `Version ${require('../package.json').version}`;
+        document.body.appendChild(versionLabel);
+
         gui = new GUIContainer(canvas,{
             tailLength: 100,
             planet,
