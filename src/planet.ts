@@ -130,7 +130,7 @@ export class Triangle extends Behaviour {
     }
 
     public on_object_pointer_down = (e: Myou.Behaviour.ObjectPointerEvent): void => {
-        if(e.object != this.ob) { return; }
+        if(e.object != this.ob || e.button != 0) { return; }
         document.dispatchEvent(new CustomEvent("TrianglePicked",{detail:this.index}))
     }
 }

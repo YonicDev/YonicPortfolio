@@ -330,7 +330,7 @@ class SlideshowSlide {
         this.imageButton = document.createElement("div");
         this.imageButton.classList.add("image-button");
 
-        this.element.onclick = () => {
+        this.element.onpointerup = () => {
             this.gui.mediaWindow.displayMedia(media);
         }
         this.element.append(media.type=="video" || media.type=="youtube"? this.videoButton : this.imageButton);
@@ -456,12 +456,12 @@ class SlideshowGrid {
             this.elements[i].container.classList.add("unavailable");
             this.elements[i].content.style.backgroundImage = "";
             this.elements[i].videoButton.style.display = "none";
-            this.elements[i].container.onclick = null;
+            this.elements[i].container.onpointerup = null;
         }
         for(let i=0;i<mediaArray.length;i++) {
             let media = mediaArray[i];
             this.elements[i+2].container.classList.remove("unavailable");
-            this.elements[i+2].container.onclick = () => {
+            this.elements[i+2].container.onpointerup = () => {
                 document.querySelector("#slide-"+i)?.scrollIntoView();
                 this.setActiveSlide(i);
             }
@@ -593,7 +593,7 @@ export class MediaWindow {
                 ease: "quad.easeOut",
                 onComplete: () => {
                     this.player.loadVideoById(media.content[0]);
-                    this.closeButton.onclick = () => {
+                    this.closeButton.onpointerup = () => {
                         this.player.pauseVideo();
                         gsap.to(this.container, {
                             scale: 2,
@@ -624,7 +624,7 @@ export class MediaWindow {
                 ease: "quad.easeOut",
                 onComplete: () => {
                     this.videoElement.play();
-                    this.closeButton.onclick = () => {
+                    this.closeButton.onpointerup = () => {
                         this.videoElement.pause();
                         this.videoElement.currentTime = 0;
                         gsap.to(this.container, {
@@ -649,7 +649,7 @@ export class MediaWindow {
                 duration: 0.5,
                 ease: "quad.easeOut",
                 onComplete: () => {
-                    this.closeButton.onclick = () => {
+                    this.closeButton.onpointerup = () => {
                         this.player.pauseVideo();
                         gsap.to(this.container, {
                             scale: 2,

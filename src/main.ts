@@ -196,7 +196,7 @@ async function main() {
             document.body.removeEventListener('mousemove',rotateCamera);
         else if(e.type == 'touchend' || e.type == 'touchleave') {
             e.preventDefault();
-            canvas.removeEventListener('touchmove', rotateCamera);
+            document.body.removeEventListener('touchmove', rotateCamera);
         }
     }
 
@@ -213,7 +213,8 @@ async function main() {
             fontSize: 12
         });
         (window as any).gui = gui;
-        gui.exploreButton.button.onclick = () => {
+        gui.exploreButton.button.onpointerup = (e:PointerEvent) => {
+            if(e.button!=0) return;
             goToSection(planet.selectedTriangle.index);
         };
 
@@ -225,7 +226,8 @@ async function main() {
             scale:2
         });
 
-        gui.articleWindow.backButton.onclick = (window as any).returnToOrbit = function () {
+        gui.articleWindow.backButton.onpointerup = (window as any).returnToOrbit = function (e: PointerEvent) {
+            if(e.button != 0) return;
             scene.global_vars.game_state = "zoomOut";
     
             gui.articleWindow.backButton.disabled = true;
@@ -284,6 +286,8 @@ async function main() {
                             gui.slideshow.container.style.pointerEvents = ""
                             gui.exploreButton.button.disabled = false;
                             scene.global_vars.game_state = "orbit";
+                            document.body.addEventListener('mousedown',enableCameraMove);
+                            document.body.addEventListener('touchstart',enableCameraMove);
                         }
                     });
                     gsap.to(gui.exploreButton.button,{
@@ -391,8 +395,10 @@ async function main() {
 
     // Go to a section of the webpage.
     function goToSection(section: number) {
-        canvas.removeEventListener('mousedown',enableCameraMove);
-        canvas.removeEventListener('touchstart',enableCameraMove);
+        document.body.removeEventListener('mousedown',enableCameraMove);
+        document.body.removeEventListener('touchstart',enableCameraMove);
+        document.body.removeEventListener('mousemove',rotateCamera);
+        document.body.removeEventListener('touchmove', rotateCamera);
 
         let target = planet.getTriangleCenter(section-1);
         scene.global_vars.game_state = "zooming";
