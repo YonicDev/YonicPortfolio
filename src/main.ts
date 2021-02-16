@@ -178,22 +178,13 @@ async function main() {
 
     camera.orbitTo(new CustomEvent("",{detail:13}));
 
-    function rotateCamera(e:MouseEvent|TouchEvent) {
+    function rotateCamera(e:PointerEvent) {
         if(scene.global_vars.game_state == "orbit") {
             let v = vec2.create();
             e.stopPropagation();
-            if( e.type == 'mousemove') {
-                let ev = e as MouseEvent;
-                vec2.set(v,
-                (ev.clientX-camera.rotation_origin.x)/canvas.clientWidth*2,
-                (ev.clientY-camera.rotation_origin.y)/canvas.clientHeight*2)
-            } else if (e.type == 'touchmove') {
-                e.preventDefault();
-                let ev = e as TouchEvent;
-                vec2.set(v,
-                (ev.touches[0].clientX-camera.rotation_origin.x)/canvas.clientWidth*2,
-                (ev.touches[0].clientY-camera.rotation_origin.y)/canvas.clientHeight*2)
-            }
+            vec2.set(v,
+            (e.clientX-camera.rotation_origin.x)/canvas.clientWidth*2,
+            (e.clientY-camera.rotation_origin.y)/canvas.clientHeight*2);
             camera.camera_parent.rotation.z = camera.initial_rotation.z - v.x * camera.mouse_rotation_multiplier;
             camera.camera_parent.rotation.y = camera.initial_rotation.y - v.y * camera.mouse_rotation_multiplier;
             if(camera.camera_parent.rotation.y >= camera.angle_limit*Math.PI/180)
@@ -204,26 +195,17 @@ async function main() {
         }
     };
 
-    function enableCameraMove(e: Event) {
-        if(e.type == 'mousedown') {
-            let ev = e as MouseEvent;
-            vec2.set(camera.rotation_origin,ev.clientX,ev.clientY);
-            document.body.addEventListener('mousemove',rotateCamera);
-        } else if (e.type == 'touchstart') {
-            let ev = e as TouchEvent;
-            vec2.set(camera.rotation_origin,ev.touches[0].clientX,ev.touches[0].clientY);
-            e.preventDefault();
-            document.body.addEventListener('touchmove',rotateCamera);
-        }
+    function enableCameraMove(e: PointerEvent) {
+        e.stopPropagation();
+        vec2.set(camera.rotation_origin,e.clientX,e.clientY);
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+        canvas.addEventListener('pointermove',rotateCamera);
     }
-    function disableCameraMove(e: Event) {
+    function disableCameraMove(e: PointerEvent) {
+        e.stopPropagation();
         Object.assign(camera.initial_rotation,camera.camera_parent.rotation);
-        if(e.type == 'mouseup' || e.type == 'mouseleave')
-            document.body.removeEventListener('mousemove',rotateCamera);
-        else if(e.type == 'touchend' || e.type == 'touchleave') {
-            e.preventDefault();
-            document.body.removeEventListener('touchmove', rotateCamera);
-        }
+        (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+        canvas.removeEventListener('pointermove',rotateCamera);
     }
 
     function initializeGUI(planet: Planet) {
@@ -313,8 +295,7 @@ async function main() {
                             gui.slideshow.container.style.pointerEvents = ""
                             gui.exploreButton.button.disabled = false;
                             scene.global_vars.game_state = "orbit";
-                            document.body.addEventListener('mousedown',enableCameraMove);
-                            document.body.addEventListener('touchstart',enableCameraMove);
+                            canvas.addEventListener('pointerdown',enableCameraMove);
                         }
                     });
                     gsap.to(audioEngine.BGMList["./layer.mp3"],{
@@ -415,22 +396,15 @@ async function main() {
         })
     }
 
-    document.body.addEventListener('mousedown',enableCameraMove);
-    document.body.addEventListener('touchstart',enableCameraMove);
-
-    document.body.addEventListener('mouseleave', disableCameraMove);
-    document.body.addEventListener('mouseup', disableCameraMove);
-    document.body.addEventListener('touchend', disableCameraMove);
-    document.body.addEventListener('touchleave', disableCameraMove);
+    canvas.addEventListener('pointerdown',enableCameraMove);
+    canvas.addEventListener('pointerup', disableCameraMove);
 
     initializeGUI(planet);
 
     // Go to a section of the webpage.
     function goToSection(section: number) {
-        document.body.removeEventListener('mousedown',enableCameraMove);
-        document.body.removeEventListener('touchstart',enableCameraMove);
-        document.body.removeEventListener('mousemove',rotateCamera);
-        document.body.removeEventListener('touchmove', rotateCamera);
+        canvas.removeEventListener('pointerup',enableCameraMove);
+        canvas.removeEventListener('pointermove',rotateCamera);
 
         let target = planet.getTriangleCenter(section-1);
         scene.global_vars.game_state = "zooming";
