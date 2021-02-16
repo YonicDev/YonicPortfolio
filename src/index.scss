@@ -606,3 +606,23 @@ button:focus {
 #version-label:hover {
     color: $WINDOW_BORDER_COLOR;
 }
+
+#portfolio-title-button {
+	z-index: 6;
+	position: relative;
+	display: block;
+	text-align: center;
+	color: $LOGO_COLOR;
+	width: 50%;
+	margin: 0 auto;
+	border: 2px solid rgba($LOGO_COLOR, 0);
+    border-top-style: none;
+	border-bottom-style: none;
+	transition: all 0.75s ease-out;
+    cursor: pointer;
+}
+
+#portfolio-title-button:hover {
+	width: 10rem;
+    border-color: $LOGO_COLOR;
+}

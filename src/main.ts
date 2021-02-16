@@ -11,8 +11,9 @@ import DOMPurify from "dompurify";
 import Camera from "./camera"
 import Planet, { TriangleEntry } from "./planet"
 import Background from "./background"
-import { Logo, GUIContainer } from "./ui"
+import { Logo, GUIContainer, TitleButton } from "./ui"
 import * as Youtube from './integrations/youtube'
+import { AudioEngine } from "./audio";
 
 async function main() {
 
@@ -84,7 +85,13 @@ async function main() {
     function portfolioLogoAnimation(): Promise<void> {
         return new Promise((resolve) => {
             profLogo.root.onanimationend = () => {
-                resolve();
+                gsap.to(profLogo.transform, {
+                    top: -15,
+                    duration: 1,
+                    onUpdate:() => {
+                        profLogo.root.style.top = profLogo.transform.top+"vh";
+                    },
+                }).then(() => resolve());
             }
         })
     }
@@ -92,6 +99,13 @@ async function main() {
     window.addEventListener('resize',handleLogoResize);
 
     await portfolioLogoAnimation();
+
+    let titleButton = new TitleButton();
+
+    const audioEngine = new AudioEngine();
+    await audioEngine.importAll((require as __WebpackModuleApi.RequireFunction).context("url-loader!../assets/audio", false, /\.mp3$/));
+
+    await untilPassedTitleScreen(titleButton);
 
     // We must call scene.load to tell which things we want to load.
     scene = await scene.load('visible','physics');
@@ -115,6 +129,18 @@ async function main() {
         top: 100,
         left: 50,
         duration: 2,
+        onStart:() => {
+            titleButton.button.onpointerup = null;
+            audioEngine.BGMList["./base.mp3"].play();
+            audioEngine.BGMList["./layer.mp3"].volume = 0;
+            audioEngine.BGMList["./layer.mp3"].play();
+            gsap.to(titleButton.button,{
+                opacity: 0,
+                marginTop: 50,
+                duration: 1,
+                onComplete: () => titleButton.button.style.display = "none"
+            })
+        },
         onUpdate:() => {
             profLogo.root.setAttribute("width",currentDimensions.width*profLogo.transform.scale+"px");
             profLogo.root.setAttribute("height",currentDimensions.height*profLogo.transform.scale+"px");
@@ -210,7 +236,8 @@ async function main() {
             tailLength: 100,
             planet,
             textMargin: vec2.new(20,0),
-            fontSize: 12
+            fontSize: 12,
+            audioEngine
         });
         (window as any).gui = gui;
         gui.exploreButton.button.onpointerup = (e:PointerEvent) => {
@@ -289,6 +316,11 @@ async function main() {
                             document.body.addEventListener('mousedown',enableCameraMove);
                             document.body.addEventListener('touchstart',enableCameraMove);
                         }
+                    });
+                    gsap.to(audioEngine.BGMList["./layer.mp3"],{
+                        volume: 0,
+                        duration: 2,
+                        delay: 1
                     });
                     gsap.to(gui.exploreButton.button,{
                         opacity:1,
@@ -407,6 +439,12 @@ async function main() {
 
         bg.showStars();
 
+        gsap.to(audioEngine.BGMList["./layer.mp3"],{
+            volume: .75,
+            duration: 3,
+            delay: 1,
+            ease: "power2.in"
+        })
         gsap.to(gui.label.line,{
             drawSVG:"0%",
             duration:1,
@@ -466,7 +504,16 @@ async function main() {
     (window as any).goToSection = goToSection;
 }
 
-main();
+function untilPassedTitleScreen(titleButton: TitleButton): Promise<void> {
+    return new Promise((resolve) => {
+        titleButton.button.onpointerup = () => {
+            titleButton.button.innerHTML = "Loading...";
+            resolve();
+        };
+    })
+}
+
+window.onload = main;
 
 export interface Media {
     type: "image"|"youtube"|"video",

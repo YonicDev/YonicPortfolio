@@ -3,6 +3,7 @@ import { Media } from "./main";
 import Planet, { TriangleEntry } from "./planet";
 import * as Youtube from './integrations/youtube'
 import gsap from "gsap";
+import { AudioEngine } from "./audio";
 
 const Works = require('./articles/works.json');
 
@@ -83,12 +84,13 @@ export class GUIContainer {
         planet: Planet,
         textMargin: vec2,
         fontSize: number,
+        audioEngine: AudioEngine
     }) {
         this.slideshow = new SlideshowGrid(this.canvas3d,this,options.planet);
         this.label = new Label(this.slideshow,options);
         this.articleWindow = new ArticleWindow(this.canvas3d);
         this.exploreButton = new InteractuableButton(this);
-        this.mediaWindow = new MediaWindow(this);
+        this.mediaWindow = new MediaWindow(this,options.audioEngine);
         this.planet = options.planet;
         document.addEventListener("triangleChanged",this._loadDataAndUpdate)
     }
@@ -505,7 +507,7 @@ export class MediaWindow {
 
     public player: YT.Player;
 
-    constructor(public gui: GUIContainer) {
+    constructor(public gui: GUIContainer, public audioEngine: AudioEngine) {
         this.videoContainer = document.createElement("div");
         this.videoContainer.id = "video-window";
 
@@ -604,9 +606,11 @@ export class MediaWindow {
                                 this.container.style.display = "none";
                             }
                         })
+                        this.audioEngine.fadeAll("in");
                     }
                 }
             })
+            this.audioEngine.fadeAll("out");
         } else if(media.type == "video") {
             this.videoType = "video";
             this.imageContainer.style.display = "none";
@@ -639,6 +643,7 @@ export class MediaWindow {
                     }
                 }
             });
+            this.audioEngine.fadeAll("out");
         } else {
             this.videoType = "unknown";
             this.imageContainer.style.display = "block";
@@ -666,5 +671,15 @@ export class MediaWindow {
             this.imageElement.src = media.content[0];
             this.imageContainer.scrollTop = this.imageContainer.scrollLeft = 0;
         }
+    }
+}
+
+export class TitleButton {
+    public button: HTMLDivElement;
+    constructor() {
+        this.button = document.createElement("div");
+        this.button.id = "portfolio-title-button";
+        this.button.innerHTML = "Begin";
+        document.body.append(this.button);
     }
 }
