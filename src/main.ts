@@ -208,11 +208,35 @@ async function main() {
         canvas.removeEventListener('pointermove',rotateCamera);
     }
 
+    function enableFullscreen(e: UIEvent) {
+        const fullscreenButton = e.target as HTMLDivElement;
+        fullscreenButton.innerHTML = "Exit fullscreen";
+        fullscreenButton.onpointerdown = disableFullscreen;
+        document.body.requestFullscreen();
+    }
+
+    function disableFullscreen(e: UIEvent) {
+        const fullscreenButton = e.target as HTMLDivElement;
+        fullscreenButton.innerHTML = "Enter fullscreen";
+        fullscreenButton.onpointerdown = enableFullscreen;
+        document.exitFullscreen();
+    }
+
     function initializeGUI(planet: Planet) {
-        let versionLabel = document.createElement("p");
+        const bottomBar = document.createElement("div");
+        bottomBar.id = "bottom-bar";
+
+        const versionLabel = document.createElement("p");
         versionLabel.id = "version-label";
         versionLabel.innerText = `Version ${require('../package.json').version}`;
-        document.body.appendChild(versionLabel);
+
+        const fullscreenButton = document.createElement("div");
+        fullscreenButton.id = "fullscreen-button";
+        fullscreenButton.innerHTML = "Enter fullscreen";
+        fullscreenButton.onpointerdown = enableFullscreen;
+
+        bottomBar.append(versionLabel,fullscreenButton);
+        document.body.appendChild(bottomBar);
 
         gui = new GUIContainer(canvas,{
             tailLength: 100,
