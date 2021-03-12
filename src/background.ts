@@ -81,6 +81,7 @@ export class WaveOverlap implements BackgroundElement {
         ctx:CanvasRenderingContext2D,
         wave1:Wave,
         wave2:Wave,
+        public resolution: number,
         public color:string
     ) {
         this.ctx = ctx;
@@ -94,10 +95,10 @@ export class WaveOverlap implements BackgroundElement {
         this.ctx.beginPath();
         const canvas = this.ctx.canvas;
         this.ctx.moveTo(0,canvas.height*0.5);
-        for(let x=0;x<canvas.width;x++) {
+        for(let x=0;x<canvas.width+this.resolution;x+=this.resolution) {
             this.ctx.lineTo(x,this.waves[0].getY(x,this.time)+canvas.height/2-this.waves[1].amplitude*2);
         }
-        for(let x=canvas.width;x>0;x--) {
+        for(let x=canvas.width;x>-this.resolution;x-=this.resolution) {
             this.ctx.lineTo(x,this.waves[1].getY(x,this.time)+canvas.height/2+this.waves[0].amplitude);
         }
         this.ctx.closePath();
@@ -518,8 +519,9 @@ export default class Background {
         let wave2 = new Wave(20,0.006,0.023,Math.PI/4);
         let wave3 = new Wave(40,0.006,0.021,Math.PI/6);
         let wave4 = new Wave(20,0.006,0.024,Math.PI/2);
-        this.bgElements.push(new WaveOverlap(this._ctx,wave3,wave4,this.options.wave1Color));
-        this.bgElements.push(new WaveOverlap(this._ctx,wave1,wave2,this.options.wave2Color));
+        let waveResolution = 16;
+        this.bgElements.push(new WaveOverlap(this._ctx,wave3,wave4,waveResolution,this.options.wave1Color));
+        this.bgElements.push(new WaveOverlap(this._ctx,wave1,wave2,waveResolution,this.options.wave2Color));
 
         //Constellations
         let constellationBounds = new Bounds({x:this.canvas.width*0.5,y:this.canvas.height*0.25},this.canvas.width*0.25,this.canvas.height/4);

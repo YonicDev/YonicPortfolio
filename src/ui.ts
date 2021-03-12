@@ -214,10 +214,13 @@ class Label {
         );
 
         // Get pixel color from the selected triangle.
-        const gl:WebGLRenderingContext = this.planet.triangles[0].scene.context.render_manager.gl;
+        /*const gl:WebGLRenderingContext = this.planet.triangles[0].scene.context.render_manager.gl;
         let p = new Uint8Array(4);
-        gl.readPixels(this.start.x,this.start.y,1,1,gl.RGBA,gl.UNSIGNED_BYTE,p);
-        this.stroke.color = `rgba(${p[0]+32},${p[1]+32},${p[2]+32},1)`;
+        gl.readPixels(this.start.x,this.start.y,1,1,gl.RGBA,gl.UNSIGNED_BYTE,p);*/
+        let selectedWork: TriangleEntry|undefined = Works.find((work: TriangleEntry) => {
+            return work.triangle == this.planet.triangles.indexOf(this.planet.selectedTriangle)+1
+        });
+        this.stroke.color = selectedWork? "cyan" : "gray" //`rgba(${p[0]+32},${p[1]+32},${p[2]+32},1)`;
 
         // Update stroke animation limits
         this.stroke.length = this.line.getTotalLength();
