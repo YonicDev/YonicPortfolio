@@ -5,17 +5,17 @@ export class AudioEngine {
     constructor() {
         this.BGMList = {};
     }
-    public importAll(req: __WebpackModuleApi.RequireContext): Promise<string[]> {
+    public importBGMTracks(...tracks: string[]): Promise<string[]> {
         let promises: Promise<string>[] = [];
-        promises.push(new Promise((resolve) => {
-            req.keys().forEach(key => {
-                let audio = new Audio(req(key).default);
-                this.BGMList[key] = audio;
-                this.BGMList[key].loop = true;
-                this.BGMList[key].load();
-                resolve(key);
-            });
-        }))
+        for(let track of tracks) {
+            promises.push(new Promise((resolve) => {
+                let url = require("../assets/audio/" + track + ".mp3").default;
+                this.BGMList[track] = new Audio(url);
+                this.BGMList[track].loop = true;
+                this.BGMList[track].load();
+                resolve(url);
+            }));
+        }
         return Promise.all(promises);
     }
     public fadeAll(type: "in"|"out"): void {

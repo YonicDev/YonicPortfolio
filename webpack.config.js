@@ -4,6 +4,7 @@ var webpack = require('webpack');
 var CopyWebpackPlugin = require('copy-webpack-plugin');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var TerserPlugin = require('terser-webpack-plugin');
+var BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 var path = require('path');
 
@@ -69,7 +70,13 @@ var config = {
                     }
                 ]
             },
-            {test: /\.s[ac]ss$/i, use: ['style-loader','css-loader','sass-loader']}
+            {test: /\.s[ac]ss$/i, use: ['style-loader','css-loader','sass-loader']},
+            {test: /\.(mp3|wav)$/, use: [{
+                loader: 'file-loader',
+                options: {
+                    name: '[path][name].[ext]'
+                }
+            }]},
         ]
     },
     plugins: [
@@ -107,13 +114,51 @@ module.exports = (env={}) => {
     if(env.production){
         config.mode = 'production';
     }
+    if(env.inspect) {
+        config.plugins.push(new BundleAnalyzerPlugin());
+    }
     if(env.sourcemaps){
         config.devtool = 'eval-source-map';
     }
     if(env.minify || env.uglify){
         config.optimization = {
             minimize: true,
-            minimizer: [new TerserPlugin()]
+            minimizer: [new TerserPlugin({
+                parallel: true,
+                terserOptions: {
+                    format: {
+                        comments: false,
+                    },
+                },
+                extractComments: false
+            })],
+            splitChunks: {
+                chunks: 'all',
+                minSize: 2000,
+                maxSize: 0,
+                minChunks: 1,
+                maxAsyncRequests: 30,
+                maxInitialRequests: 30,
+                enforceSizeThreshold: 50000,
+                cacheGroups: {
+                    defaultVendors: {
+                        test: /[\\/]node_modules[\\/]/,
+                        priority: -10,
+                        reuseExistingChunk: true,
+                    },
+                    myouEngine: {
+                        test: /[\\/]myou-engine[\\/]/,
+                        priority: -15,
+                        minChunks: 1,
+                        reuseExistingChunk: true,
+                    },
+                    default: {
+                        minChunks: 2,
+                        priority: -20,
+                        reuseExistingChunk: true,
+                    },
+                },
+            }
         };
     }
     if(env.babel){

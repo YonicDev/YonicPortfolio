@@ -145,7 +145,7 @@ async function main() {
     let titleButton = new TitleButton();
 
     const audioEngine = new AudioEngine();
-    await audioEngine.importAll((require as __WebpackModuleApi.RequireFunction).context("url-loader!../assets/audio", false, /\.mp3$/));
+    await audioEngine.importBGMTracks("base","layer");
 
     await untilPassedTitleScreen(titleButton);
 
@@ -173,9 +173,9 @@ async function main() {
         duration: 2,
         onStart:() => {
             titleButton.button.onpointerup = null;
-            audioEngine.BGMList["./base.mp3"].play();
-            audioEngine.BGMList["./layer.mp3"].volume = 0;
-            audioEngine.BGMList["./layer.mp3"].play();
+            audioEngine.BGMList["base"].play();
+            audioEngine.BGMList["layer"].volume = 0;
+            audioEngine.BGMList["layer"].play();
             gsap.to(titleButton.button,{
                 opacity: 0,
                 marginTop: 50,
@@ -369,7 +369,7 @@ async function main() {
                             canvas.addEventListener('pointerdown',enableCameraMove);
                         }
                     });
-                    gsap.to(audioEngine.BGMList["./layer.mp3"],{
+                    gsap.to(audioEngine.BGMList["layer"],{
                         volume: 0,
                         duration: 2,
                         delay: 1
@@ -488,7 +488,7 @@ async function main() {
             gsap.to(triMesh,{alpha: 1, duration: 2});
         }});
 
-        gsap.to(audioEngine.BGMList["./layer.mp3"],{
+        gsap.to(audioEngine.BGMList["layer"],{
             volume: .75,
             duration: 3,
             delay: 1,
