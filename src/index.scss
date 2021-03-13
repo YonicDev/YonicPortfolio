@@ -147,7 +147,7 @@ body {
 }
 
 #logo {
-    z-index: 5;
+    z-index: 7;
     position: fixed;
     top:0;
     background-color: $BACKGROUND_COLOR;
@@ -604,6 +604,7 @@ button:focus {
 	padding: 0 64px;
 	justify-content: space-between;
     box-sizing: border-box;
+    z-index: 5;
 
     #version-label, #fullscreen-button {
         color: darken($WINDOW_BORDER_COLOR,25%);
@@ -619,7 +620,7 @@ button:focus {
 }
 
 #portfolio-title-button {
-	z-index: 6;
+	z-index: 10;
 	position: relative;
 	display: block;
 	text-align: center;
