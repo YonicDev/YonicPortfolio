@@ -100,6 +100,7 @@ var config = {
             // // Note that we're pointing to pack.coffee to use the source directly
             // // instead of the precompiled one.
             // 'myou-engine': path.resolve(__dirname+'/../myou-engine/pack.coffee'),
+            "gsap/DrawSVGPlugin$": path.resolve(__dirname,"lib/DrawSVGPlugin.js"),
         },
     },
     mode: 'development',
@@ -144,12 +145,6 @@ module.exports = (env={}) => {
                     defaultVendors: {
                         test: /[\\/]node_modules[\\/]/,
                         priority: -10,
-                        reuseExistingChunk: true,
-                    },
-                    myouEngine: {
-                        test: /[\\/]myou-engine[\\/]/,
-                        priority: -15,
-                        minChunks: 1,
                         reuseExistingChunk: true,
                     },
                     default: {

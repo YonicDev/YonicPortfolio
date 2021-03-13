@@ -6,7 +6,7 @@ const { vec2 } = vmath;
 import Color from "color";
 
 import gsap from "gsap"
-const {DrawSVGPlugin} = require("../lib/DrawSVGPlugin3.min.js");
+import DrawSVGPlugin from "gsap/DrawSVGPlugin";
 gsap.registerPlugin(DrawSVGPlugin);
 
 import DOMPurify from "dompurify";
