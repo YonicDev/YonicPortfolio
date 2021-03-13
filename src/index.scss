@@ -639,3 +639,18 @@ button:focus {
 	width: 10rem;
     border-color: $LOGO_COLOR;
 }
+
+.backgroundLayer {
+    position: absolute;
+    top:0;
+    left:0;
+}
+
+.backgroundLayer#background {
+    z-index: -1;
+}
+
+.backgroundLayer#foreground {
+    z-index: 1;
+    pointer-events: none;
+}

@@ -2,6 +2,9 @@ import "./index.scss";
 
 import { Myou, create_full_window_canvas, vmath } from "myou-engine"
 const { vec2 } = vmath;
+
+import Color from "color";
+
 import gsap from "gsap"
 const {DrawSVGPlugin} = require("../lib/DrawSVGPlugin3.min.js");
 gsap.registerPlugin(DrawSVGPlugin);
@@ -10,10 +13,40 @@ import DOMPurify from "dompurify";
 
 import Camera from "./camera"
 import Planet, { TriangleEntry } from "./planet"
-import Background from "./background"
 import { Logo, GUIContainer, TitleButton } from "./ui"
 import * as Youtube from './integrations/youtube'
 import { AudioEngine } from "./audio";
+
+import { BackgroundLayer, BackgroundElement } from "./background/elements";
+import { Hex } from "./background/hex";
+import { Wave, WaveOverlap } from "./background/wave";
+import { TriMesh } from "./background/tri";
+
+function buildBackgrounds(bg: BackgroundLayer, fg: BackgroundLayer, e?:UIEvent) {
+    if(e==null) {
+        let wave1 = new Wave(40,0.006,0.02,0);
+        let wave2 = new Wave(20,0.006,0.023,Math.PI/4);
+        let wave3 = new Wave(40,0.006,0.021,Math.PI/6);
+        let wave4 = new Wave(20,0.006,0.024,Math.PI/2);
+        bg.elements.waveA = new WaveOverlap(bg,Color.rgb(5,252,186),0.0125,32,wave1,wave2);
+        bg.elements.waveB = new WaveOverlap(bg,Color.rgb(5,252,186),0.05,32,wave3,wave4);
+        bg.elements.triMesh = new TriMesh(bg);
+    } else {
+        bg.pixi.renderer.resize(window.innerWidth,window.innerHeight);
+        fg.pixi.renderer.resize(window.innerWidth,window.innerHeight);
+
+        let triDrawable = (bg.elements.triMesh as TriMesh).drawable;
+        let triActive = (bg.elements.triMesh as TriMesh).active;
+        let triAlpha = (bg.elements.triMesh as TriMesh).alpha;
+        bg.elements.triMesh = new TriMesh(bg);
+        bg.elements.triMesh.drawable = triDrawable;
+        bg.elements.triMesh.active = triActive;
+        bg.elements.triMesh.alpha = triAlpha;
+    }
+    
+    fg.elements.hexLeft = Hex.createHexWall(fg,"left");
+    fg.elements.hexRight = Hex.createHexWall(fg,"right");
+}
 
 async function main() {
 
@@ -51,21 +84,30 @@ async function main() {
     // Document styling
     document.body.style.overflow = "hidden";
 
-    // Background initialization
+    // Background layers initialization
 
-    const bg = new Background({
-        wave1Color: "rgba(5,252,186,0.0125)",
-        wave2Color: "rgba(5,252,186,0.05)",
-        triMesh: {
-            drawable: false,
-            active: false,
-            triSize: 50,
-            colors: ["lightseagreen","rgb(5,252,186)"],
-            alpha: 0
-        }
-    })
-    bg.init();
+    const bg = new BackgroundLayer("background",{
+        transparent: false,
+        backgroundColor: 0x05160f
+    });
+
+    window.addEventListener('resize', (e) => {
+        buildBackgrounds(bg,fg,e);
+    });
+    
     (window as any).bg = bg;
+
+    const fg = new BackgroundLayer("foreground",{
+        transparent: true,
+    });
+    (window as any).fg = fg;
+
+    buildBackgrounds(bg,fg);
+
+    canvas.addEventListener('mousemove',(ev) => {
+        vec2.set(fg.mouse,ev.x,ev.y);
+        vec2.set(bg.mouse,ev.x,ev.y);
+    });
 
     // GUI Initialization
     let gui: GUIContainer;
@@ -251,7 +293,7 @@ async function main() {
             goToSection(planet.selectedTriangle.index);
         };
 
-        scene.post_draw_callbacks.push(bg.update, gui.update);
+        scene.post_draw_callbacks.push(gui.update);
 
         gsap.set(gui.mediaWindow.container,{
             opacity:0,
@@ -265,7 +307,12 @@ async function main() {
     
             gui.articleWindow.backButton.disabled = true;
     
-            bg.showWaves();
+            gsap.to(bg.elements.triMesh,{ alpha:0, duration: 2, onComplete: () => {
+                let waveA = bg.elements.waveA as WaveOverlap;
+                let waveB = bg.elements.waveB as WaveOverlap;
+                waveA.active = waveA.drawable = waveB.active = waveB.drawable = true;
+                gsap.to([waveA, waveB],{alpha: 1, duration: 2});
+            }});
             gsap.to(gui.articleWindow.container,{
                 duration: 1,
                 opacity: 0,
@@ -435,7 +482,11 @@ async function main() {
 
         gui.exploreButton.button.disabled = true;
 
-        bg.showStars();
+        gsap.to([bg.elements.waveA,bg.elements.waveB],{ alpha:0, duration: 2, onComplete: () => {
+            let triMesh = bg.elements.triMesh as TriMesh;
+            triMesh.active = triMesh.drawable = true;
+            gsap.to(triMesh,{alpha: 1, duration: 2});
+        }});
 
         gsap.to(audioEngine.BGMList["./layer.mp3"],{
             volume: .75,
