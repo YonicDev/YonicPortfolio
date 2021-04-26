@@ -78,7 +78,19 @@ body {
     }
 
     #article-content {
+        $LINK_COLOR: #008cff;
         padding: 0 1rem;
+        a,a:visited {
+            color: $LINK_COLOR;
+            transition: color 0.25s linear;
+            text-decoration: none;
+        }
+        a:hover, a:visited:hover {
+            color: lighten($LINK_COLOR,30%);
+        }
+        a:active, a:visited:active {
+            color: white;
+        }
     }
 
     #article-window-border {
@@ -625,37 +637,40 @@ button:focus {
         font-size: 0.75em;
     }
 
-    #drag-indicator {
+    #drag-indicator, #set-indicator {
         width: 5em;
         padding: 0 5vw;
-        svg {
-            .cls-1, .cls-2, .cls-3 {
-                fill: none;
-                stroke: $BORDER_TEXT_COLOR;
-                stroke-miterlimit: 10;
-            }
+        div {
+            user-select: none;
+        }
+    }
+
+    #drag-indicator > svg {
+        .cls-1, .cls-2, .cls-3 {
+            fill: none;
+            stroke: $BORDER_TEXT_COLOR;
+            stroke-miterlimit: 10;
+        }
+
+        .fill {
+            fill: $BORDER_TEXT_COLOR;
+        }
     
-            .fill {
-                fill: $BORDER_TEXT_COLOR;
-            }
-        
-            .cls-1 {
-                stroke-width: 4px;
-            }
-    
-            .cls-2 {
-                stroke-width: 2.1847px;
-            }
-    
-            .cls-3 {
-                stroke-width: 39px;
-            }
+        .cls-1 {
+            stroke-width: 4px;
+        }
+
+        .cls-2 {
+            stroke-width: 2.1847px;
+        }
+
+        .cls-3 {
+            stroke-width: 39px;
         }
     }
     
     #set-indicator {
-        width: 5em;
-        padding: 0 5vw;
+        
         svg {
             color:$BORDER_TEXT_COLOR;
             .cls-1, .cls-2, .cls-4, .cls-6 {
