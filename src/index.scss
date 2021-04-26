@@ -12,6 +12,8 @@ $BACKGROUND_COLOR: #05160f;
 $CORNER: 10px;
 $BORDER_THICKNESS: 3px;
 
+$BORDER_TEXT_COLOR: darken($WINDOW_BORDER_COLOR,25%);
+
 $FONT_BUTTONS: 'Raleway','Franklin Gothic Medium', 'Arial Narrow', Arial, Helvetica, sans-serif;
 $FONT_PARAGRAPHS: 'Nunito', 'Franklin Gothic Medium', 'Arial Narrow', Arial, Helvetica, sans-serif;
 $FONT_HEADINGS: 'Russo One', 'Franklin Gothic Black', 'Arial Black', Arial, Helvetica, sans-serif;
@@ -607,7 +609,7 @@ button:focus {
     z-index: 5;
 
     #version-label, #fullscreen-button {
-        color: darken($WINDOW_BORDER_COLOR,25%);
+        color: $BORDER_TEXT_COLOR;
         font-size: 10pt;
         user-select: none;
         transition: all 0.25s ease-out;
@@ -615,6 +617,85 @@ button:focus {
     
     #version-label:hover, #fullscreen-button:hover {
         color: $WINDOW_BORDER_COLOR;
+    }
+
+    .indicatorText {
+        text-align: center;
+        color: $BORDER_TEXT_COLOR;
+        font-size: 0.75em;
+    }
+
+    #drag-indicator {
+        width: 5em;
+        padding: 0 5vw;
+        svg {
+            .cls-1, .cls-2, .cls-3 {
+                fill: none;
+                stroke: $BORDER_TEXT_COLOR;
+                stroke-miterlimit: 10;
+            }
+    
+            .fill {
+                fill: $BORDER_TEXT_COLOR;
+            }
+        
+            .cls-1 {
+                stroke-width: 4px;
+            }
+    
+            .cls-2 {
+                stroke-width: 2.1847px;
+            }
+    
+            .cls-3 {
+                stroke-width: 39px;
+            }
+        }
+    }
+    
+    #set-indicator {
+        width: 5em;
+        padding: 0 5vw;
+        svg {
+            color:$BORDER_TEXT_COLOR;
+            .cls-1, .cls-2, .cls-4, .cls-6 {
+                fill: none;
+            }
+
+            .fill {
+                fill: $BORDER_TEXT_COLOR;
+            }
+    
+            .cls-1, .cls-2, .cls-3, .cls-4, .cls-6 {
+                stroke: $BORDER_TEXT_COLOR;
+                stroke-miterlimit: 10;
+            }
+    
+            .cls-1 {
+                stroke-width: 4px;
+            }
+    
+            .cls-2 {
+                stroke-width: 2.1847px;
+            }
+    
+            .cls-3 {
+                fill: $BORDER_TEXT_COLOR;
+            }
+    
+            .cls-3, .cls-4 {
+                stroke-linecap: square;
+                stroke-width: 2.0763px;
+            }
+    
+            .cls-5 {
+                font-size: 19px;
+            }
+    
+            .cls-6 {
+                stroke-width: 3px;
+            }
+        }
     }
 
 }

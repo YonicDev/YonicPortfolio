@@ -277,7 +277,26 @@ async function main() {
         fullscreenButton.innerHTML = "Enter fullscreen";
         fullscreenButton.onpointerdown = enableFullscreen;
 
-        bottomBar.append(versionLabel,fullscreenButton);
+        const indicators = {
+            drag: document.createElement("div"),
+            dragText: document.createElement("div"),
+            set: document.createElement("div"),
+            setText: document.createElement("div")
+        }
+
+        indicators.drag.id = "drag-indicator";
+        indicators.drag.innerHTML = require("!!raw-loader!../assets/gui/drag-indicator.svg").default;
+        indicators.dragText.classList.add("indicatorText");
+        indicators.dragText.innerHTML = "Drag";
+        indicators.drag.appendChild(indicators.dragText);
+
+        indicators.set.id = "set-indicator";
+        indicators.set.innerHTML = require("!!raw-loader!../assets/gui/set-indicator.svg").default;
+        indicators.setText.classList.add("indicatorText");
+        indicators.setText.innerHTML = "Select";
+        indicators.set.appendChild(indicators.setText);
+
+        bottomBar.append(versionLabel,indicators.drag,indicators.set,fullscreenButton);
         document.body.appendChild(bottomBar);
 
         gui = new GUIContainer(canvas,{
